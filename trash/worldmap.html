@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Viajes</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places">
+    </script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Inicializar el mapa
+        let map;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -12.0464, lng: -77.0428 }, // Lima, Perú
+                zoom: 6,
+            });
+
+            // Cargar lugares desde Firebase
+            loadPlaces();
+        }
+
+        async function loadPlaces() {
+            const viajesCollection = await db.collection("viajes").get();
+            viajesCollection.forEach(async (doc) => {
+                const data = doc.data();
+                const address = data.location.formattedAddress;
+
+                // Geocodificar dirección
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address }, (results, status) => {
+                    if (status === "OK") {
+                        const location = results[0].geometry.location;
+
+                        // Agregar marcador al mapa
+                        new google.maps.Marker({
+                            position: location,
+                            map: map,
+                            title: address,
+                        });
+                    } else {
+                        console.error(`Geocoding failed: ${status}`);
+                    }
+                });
+            });
+        }
+
+        // Cargar mapa al iniciar
+        window.onload = initMap;
+    </script>
+</body>
+</html>

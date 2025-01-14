@@ -129,7 +129,7 @@
             right: 30px;
             width: 60px;
             height: 60px;
-            background-color: #4CAF50;
+            background-color: #1d1b1b;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -141,9 +141,33 @@
             z-index: 1000;
         }
 
+        .world-button {
+            position: fixed;
+            bottom: 100px; /* Aumenta la separación del botón superior */
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #20183d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            text-decoration: none;
+            z-index: 1001; /* Asegura que esté encima si hay superposición */
+        }
+
+
         .add-button:hover {
             transform: translateY(-3px);
-            background-color: #45a049;
+            background-color: #151025;
+        }
+
+        .world-button:hover {
+            transform: translateY(-3px);
+            background-color: #241717;
         }
 
         .add-button:active {
@@ -153,6 +177,12 @@
         .add-button span {
             color: white;
             font-size: 40px;
+            line-height: 1;
+        }
+
+        .world-button span {
+            color: white;
+            font-size: 17px;
             line-height: 1;
         }
 
@@ -177,6 +207,9 @@
     <div id="gallery" class="gallery"></div>
     <a href="upload_photos.html" class="add-button">
         <span>+</span>
+    </a>
+    <a href="allinone.html" class="world-button">
+        <span>world</span>
     </a>
 
     <script>

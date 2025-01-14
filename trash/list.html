@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Viajes</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #list {
+            list-style: none;
+            padding: 0;
+        }
+        #list li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #list li h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        #list li p {
+            margin: 5px 0 0;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lugares Visitados</h1>
+    <ul id="list"></ul>
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Cargar lugares desde Firestore y ordenarlos por fecha
+        async function loadPlaces() {
+            const list = document.getElementById("list");
+
+            // Consulta a Firestore ordenando por el campo "timestamp"
+            const viajesCollection = await db.collection("viajes").orderBy("timestamp", "asc").get();
+
+            viajesCollection.forEach(doc => {
+                const data = doc.data();
+                const address = data.location.formattedAddress;
+                const timestamp = data.timestamp.toDate(); // Convierte el timestamp a un objeto Date
+
+                // Formatear la fecha
+                const options = { 
+                    year: 'numeric', month: 'long', day: 'numeric', 
+                    hour: 'numeric', minute: 'numeric', second: 'numeric', 
+                    timeZoneName: 'short' 
+                };
+                const formattedDate = timestamp.toLocaleString("es-ES", options);
+
+                // Crear elemento de lista
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <h3>${address}</h3>
+                    <p>Fecha: ${formattedDate}</p>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // Cargar la lista al iniciar
+        loadPlaces();
+    </script>
+</body>
+</html>
