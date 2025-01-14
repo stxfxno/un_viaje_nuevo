@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Inicia Sesión</h2>
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <button id="loginButton">Ingresar</button>
+        <p id="error" style="color: red; display: none;">Correo o contraseña incorrectos</p>
+    </div>    
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Manejar el inicio de sesión
+        document.getElementById('loginButton').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('error');
+
+            try {
+                // Intentamos autenticar con el correo y la contraseña ingresados
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+                // Si la autenticación es exitosa, redirige a la siguiente vista
+                alert("Inicio de sesión exitoso");
+                window.location.href = "html/galeria_fotos.html";
+            } catch (error) {
+                // Si hay un error (por ejemplo, credenciales incorrectas)
+                console.error(error);
+                errorElement.style.display = "block"; // Mostrar mensaje de error
+            }
+
+        });
+    </script>
+</body>
+
+</html>

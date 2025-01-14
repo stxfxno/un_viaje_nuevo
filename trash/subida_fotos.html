@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Foto</title>
+    <!-- Cargar Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.8.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.8.0/firebase-firestore.js"></script>
+    <!-- Cargar API de Google Maps y Places -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzNWa-ZxRvYlxlIrsIbbJElJpp89IsC8c&libraries=places&callback=initMap" async defer></script>
+</head>
+<body>
+    <h1>Subir Foto</h1>
+
+    <!-- Formulario para subir la foto y los datos -->
+    <form id="photoForm">
+        <label for="fileInput">Seleccionar Foto:</label>
+        <input type="file" id="fileInput" required /><br>
+
+        <label for="description">Descripción:</label>
+        <input type="text" id="description" required /><br>
+
+        <label for="takenBy">Quién la tomó:</label>
+        <select id="takenBy">
+            <option value="Yeli">Yeli</option>
+            <option value="Stef">Stef</option>
+        </select><br>
+
+        <label for="location">Lugar:</label>
+        <input type="text" id="location" oninput="searchLocation()" placeholder="Escribe el lugar..." required><br>
+
+        <div id="suggestions"></div>
+
+        <button type="submit">Guardar Foto</button>
+    </form>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const storageRef = storage.ref();
+        const db = firebase.firestore();
+
+        // Función para inicializar el mapa y autocompletar del lugar
+        let autocomplete;
+
+        function initMap() {
+            const input = document.getElementById('location');
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.setFields(['place_id', 'name']);
+            autocomplete.addListener('place_changed', onPlaceChanged);
+        }
+
+        // Función para manejar el cambio de lugar
+        function searchLocation() {
+            const input = document.getElementById('location').value;
+            if (input.length > 3) {
+                autocomplete.setBounds(new google.maps.LatLngBounds(new google.maps.LatLng(19.432608, -99.133209), new google.maps.LatLng(19.433, -99.132)));
+                autocomplete.getPlace();
+            }
+        }
+
+        function onPlaceChanged() {
+            const place = autocomplete.getPlace();
+            if (place.geometry) {
+                document.getElementById('location').value = place.name;
+            }
+        }
+
+        // Subir la foto y guardar los datos en Firestore
+        document.getElementById('photoForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const description = document.getElementById('description').value;
+            const takenBy = document.getElementById('takenBy').value;
+            const location = document.getElementById('location').value;
+            const file = document.getElementById('fileInput').files[0];
+            const fileRef = storageRef.child('fotos/' + file.name);
+
+            // Subir la imagen a Firebase Storage
+            fileRef.put(file).then(function(snapshot) {
+                // Obtener la URL de la imagen subida
+                fileRef.getDownloadURL().then(function(url) {
+                    // Guardar los datos en Firestore
+                    db.collection('fotos').add({
+                        description: description,
+                        takenBy: takenBy,
+                        location: location,
+                        imageUrl: url,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(function() {
+                        alert('Foto guardada correctamente!');
+                    });
+                });
+            }).catch(function(error) {
+                alert('Error al subir la foto: ' + error.message);
+            });
+        });
+    </script>
+</body>
+</html>

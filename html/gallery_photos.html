@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Fotos del Viaje</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+
+        .card-author {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .card-date {
+            color: #888;
+            font-size: 0.8em;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            color: #333;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .location-text {
+            color: #2196F3;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+
+            .card-image {
+                max-width: 600px;
+            }
+
+            .card-content {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 20px;
+            }
+        }
+
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .add-button:hover {
+            transform: translateY(-3px);
+            background-color: #45a049;
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+        }
+
+        .add-button span {
+            color: white;
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        @media (max-width: 768px) {
+            .add-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+
+            .add-button span {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Nuestras Fotos de Viaje</h1>
+    <div id="loading" class="loading">Cargando fotos...</div>
+    <div id="gallery" class="gallery"></div>
+    <a href="upload_photos.html" class="add-button">
+        <span>+</span>
+    </a>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+
+        function createPhotoCard(doc) {
+            const data = doc.data();
+            const card = document.createElement('a');
+            card.className = 'card';
+            card.href = `detail.html?id=${doc.id}`; // Link a la página de detalle
+
+            card.innerHTML = `
+                <img src="${data.imageUrl}" alt="Foto del viaje" class="card-image">
+                <div class="card-content">
+                    <div class="card-author">Subido por: ${data.author}</div>
+                    <div class="card-date">${formatDate(data.date)}</div>
+                    <div class="card-description">${data.description}</div>
+                    <div class="location-text">📍 ${data.location.formattedAddress}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function loadPhotos() {
+            const gallery = document.getElementById('gallery');
+            const loading = document.getElementById('loading');
+
+            try {
+                const snapshot = await db.collection('viajes')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    loading.textContent = 'No hay fotos disponibles';
+                    return;
+                }
+
+                loading.style.display = 'none';
+                snapshot.forEach(doc => {
+                    gallery.appendChild(createPhotoCard(doc));
+                });
+            } catch (error) {
+                console.error('Error al cargar las fotos:', error);
+                loading.textContent = 'Error al cargar las fotos. Por favor, recarga la página.';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPhotos);
+    </script>
+</body>
+
+</html>
