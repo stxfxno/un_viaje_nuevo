@@ -1,0 +1,9 @@
+hay alguna forma de poder activar notificaciones para que a la hora de que alguien suba una foto, a cada dispositivo le llegue una notificacion de que alguien a subido una foto
+
+
+Updates:
+
+- Crear una zona de notas para la pareja
+- Crear notificaciones
+- Juegos contador de dias para volvernos a ver (o barra de carga)
+- Actividades de pareja

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .score {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .game-button {
+            width: 120px;
+            height: 120px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .game-button:hover {
+            transform: scale(1.05);
+        }
+
+        .game-button.active {
+            filter: brightness(1.5);
+            transform: scale(0.95);
+        }
+
+        #button0 { background: #FF4B4B; }
+        #button1 { background: #4BFF4B; }
+        #button2 { background: #4B4BFF; }
+        #button3 { background: #FFFF4B; }
+
+        .control-button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 10px;
+        }
+
+        .control-button:hover {
+            background: #1e3c72;
+        }
+
+        .control-button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            flex-direction: column;
+        }
+
+        .game-over.active {
+            display: flex;
+        }
+
+        .status {
+            color: #666;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        @media (max-width: 400px) {
+            .game-button {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎵 Memoria 🎵</h1>
+        <div class="score">Puntuación: <span id="score">0</span></div>
+        <div class="status" id="status">Presiona Jugar para comenzar</div>
+        <div class="buttons-grid">
+            <button class="game-button" id="button0"></button>
+            <button class="game-button" id="button1"></button>
+            <button class="game-button" id="button2"></button>
+            <button class="game-button" id="button3"></button>
+        </div>
+        <button class="control-button" id="startButton">Jugar</button>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>¡Juego Terminado!</h2>
+        <p>Puntuación Final: <span id="finalScore">0</span></p>
+        <button class="control-button" id="restartButton">Jugar de Nuevo</button>
+    </div>
+
+    <script>
+        // Crear contexto de audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(frequency, duration = 0.3) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        const frequencies = [
+            261.63, // Do
+            329.63, // Mi
+            392.00, // Sol
+            523.25  // Do (octava superior)
+        ];
+
+        function playSound(index) {
+            playTone(frequencies[index]);
+        }
+
+        const buttons = ['button0', 'button1', 'button2', 'button3'];
+        let sequence = [];
+        let playerSequence = [];
+        let score = 0;
+        let isPlaying = false;
+
+        const startButton = document.getElementById('startButton');
+        const gameOver = document.getElementById('gameOver');
+        const restartButton = document.getElementById('restartButton');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('finalScore');
+        const statusElement = document.getElementById('status');
+
+        function activateButton(button) {
+            const element = document.getElementById(button);
+            element.classList.add('active');
+            setTimeout(() => element.classList.remove('active'), 300);
+        }
+
+        async function playSequence() {
+            isPlaying = true;
+            startButton.disabled = true;
+            statusElement.textContent = 'Observa la secuencia...';
+
+            for (let i = 0; i < sequence.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const button = sequence[i];
+                const index = buttons.indexOf(button);
+                playSound(index);
+                activateButton(button);
+            }
+
+            isPlaying = false;
+            statusElement.textContent = 'Tu turno!';
+            playerSequence = [];
+        }
+
+        function addToSequence() {
+            const randomButton = buttons[Math.floor(Math.random() * buttons.length)];
+            sequence.push(randomButton);
+        }
+
+        async function startGame() {
+            // Asegurarse de que el contexto de audio esté activo
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            sequence = [];
+            score = 0;
+            scoreElement.textContent = score;
+            addToSequence();
+            await playSequence();
+        }
+
+        function endGame() {
+            finalScoreElement.textContent = score;
+            gameOver.classList.add('active');
+            startButton.disabled = false;
+        }
+
+        buttons.forEach((button, index) => {
+            document.getElementById(button).addEventListener('click', async () => {
+                if (isPlaying) return;
+
+                // Asegurarse de que el contexto de audio esté activo
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+
+                playSound(index);
+                activateButton(button);
+                playerSequence.push(button);
+
+                if (playerSequence[playerSequence.length - 1] !== sequence[playerSequence.length - 1]) {
+                    endGame();
+                    return;
+                }
+
+                if (playerSequence.length === sequence.length) {
+                    score++;
+                    scoreElement.textContent = score;
+                    playerSequence = [];
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    statusElement.textContent = '¡Correcto! Siguiente nivel...';
+                    addToSequence();
+                    await playSequence();
+                }
+            });
+        });
+
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', () => {
+            gameOver.classList.remove('active');
+            startGame();
+        });
+    </script>
+</body>
+</html>

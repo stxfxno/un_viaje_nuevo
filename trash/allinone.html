@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa y Lista de Lugares</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script 
+        async 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places">
+    </script>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+        }
+        #list-container {
+            width: 30%;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #list-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #list-container li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #list-container li:hover {
+            background-color: #f0f0f0;
+        }
+        #map-container {
+            width: 70%;
+            height: 100%;
+            position: relative;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        #reset-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #reset-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="list-container">
+        <h2>Lugares Visitados</h2>
+        <ul id="list"></ul>
+    </div>
+    <div id="map-container">
+        <button id="reset-btn">Mostrar Todos</button>
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Variables globales
+        let map;
+        let markers = [];
+        let bounds; // Para ajustar los límites del mapa a todos los marcadores
+
+        // Inicializar el mapa
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -12.0464, lng: -77.0428 }, // Lima, Perú
+                zoom: 6,
+            });
+
+            bounds = new google.maps.LatLngBounds(); // Crear límites del mapa
+            loadPlaces();
+        }
+
+        // Cargar lugares y construir la lista
+        async function loadPlaces() {
+            const list = document.getElementById("list");
+            const viajesCollection = await db.collection("viajes").orderBy("timestamp", "asc").get();
+
+            viajesCollection.forEach(doc => {
+                const data = doc.data();
+                const { formattedAddress, latitude, longitude } = data.location;
+
+                // Crear elemento de lista
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <strong>${formattedAddress}</strong><br>
+                    Visitade por: <strong>${data.author}</strong>  el <small>${data.timestamp.toDate().toLocaleString("es-ES")}</small>
+                `;
+                li.addEventListener("click", () => focusOnPlace({ lat: latitude, lng: longitude }));
+
+                // Agregar a la lista
+                list.appendChild(li);
+
+                // Agregar marcador al mapa
+                const marker = new google.maps.Marker({
+                    position: { lat: latitude, lng: longitude },
+                    map: map,
+                    title: formattedAddress,
+                });
+                markers.push(marker);
+                bounds.extend(marker.position); // Expandir los límites
+            });
+
+            map.fitBounds(bounds); // Ajustar el mapa para mostrar todos los marcadores
+        }
+
+        // Centrar el mapa en un lugar específico
+        function focusOnPlace(location) {
+            map.setCenter(location);
+            map.setZoom(14);
+
+            // Resaltar el marcador seleccionado
+            markers.forEach(marker => {
+                marker.setAnimation(null);
+                if (
+                    marker.position.lat() === location.lat &&
+                    marker.position.lng() === location.lng
+                ) {
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                }
+            });
+        }
+
+        // Mostrar todos los lugares de nuevo
+        document.getElementById("reset-btn").addEventListener("click", () => {
+            map.fitBounds(bounds);
+            markers.forEach(marker => marker.setAnimation(null));
+        });
+
+        // Cargar el mapa al iniciar
+        window.onload = initMap;
+    </script>
+</body>
+</html>

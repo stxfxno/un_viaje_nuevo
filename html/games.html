@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .game {
+            width: 200px;
+            text-align: center;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .game img {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .game h3 {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .game p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .game .coming-soon {
+            color: #f39c12;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Juegos</h1>
+    <div class="game-container">
+        <div class="game" onclick="location.href='/html/games/snake.html'">
+            <img src="../images/hipertextual-snake-juego-mas-popular-nokia-2019151135.webp" alt="Snake">
+            <h3>Snake</h3>
+            <p>Un clásico juego para desafiar tus reflejos.</p>
+        </div>
+        <div class="game" onclick="location.href='/html/games/memory.html'">
+            <img src="../images/simonsays800450.webp" alt="Juego de Memoria">
+            <h3>Juego de Memoria</h3>
+            <p>Combina colores para ejercitar tu memoria.</p>
+        </div>
+        <div class="game" onclick="location.href='coming-soon.html'">
+            <img src="coming-soon.jpg" alt="Próximamente">
+            <h3>Próximamente</h3>
+            <p class="coming-soon">En desarrollo...</p>
+        </div>
+        <div class="game" onclick="location.href='coming-soon.html'">
+            <img src="coming-soon.jpg" alt="Próximamente">
+            <h3>Próximamente</h3>
+            <p class="coming-soon">En desarrollo...</p>
+        </div>
+        <div class="game" onclick="location.href='coming-soon.html'">
+            <img src="coming-soon.jpg" alt="Próximamente">
+            <h3>Próximamente</h3>
+            <p class="coming-soon">En desarrollo...</p>
+        </div>
+        <div class="game" onclick="location.href='coming-soon.html'">
+            <img src="coming-soon.jpg" alt="Próximamente">
+            <h3>Próximamente</h3>
+            <p class="coming-soon">En desarrollo...</p>
+        </div>
+    </div>
+</body>
+</html>

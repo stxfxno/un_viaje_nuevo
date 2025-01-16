@@ -1,0 +1,34 @@
+Soy Michael
+Mi novia se va de viaje, y yo tmb
+Una relacion a distancia puede ser complicada para varios como para pocos
+así que decidi hacer un proyecto unicamente para nosotros 2
+
+la idea principal era poder hacer un apartado de notas para que cada uno pudiera
+dejar una y que el otro la vea cuando entre a la web
+
+pero se me resultaba muy simple y algo q podria hacer simplemente usando whatsapp
+
+recordé que mi madre siempre le gusta tomar fotos a cada lugar nuevo que visitamos, experiencia
+con la familia, almuerzo u otras cosas. Así que tomé eso como base para poder una nueva
+lluvia de ideas.
+
+la nueva idea principal sería una galería colectiva donde podemos ver la foto de algun lugar
+que visito uno de nosotros, por ejemplo si visité alguna parte de Londrés, subo la foto y
+describo el lugar que visité
+
+pero no quise quedarme ahi, así que dicidi utilizar una api de google, para poder implementarla
+al proyecto, cosa que a la hora de poder poner la foto, y la descripcion, ahora podrias colocar
+el lugar y google maps automaticamente lo identificaría, posterior a ello te mostraría el mapa
+exacto del lugar que elegiste.
+
+con esto ahora podriamos ver la foto con mas detalle entrando a ella y tmb nos mostraría 
+el lugar de donde fue tomada la foto
+
+
+nueva idea para el proyecto fue poder ver en un listado todos los lugares visitados y ya no
+con la foto, pero me sonaba muy tonto, para que quisiera ver textualmente solo donde visitamos,
+si ya tengo en una lista, los lugares y las fotos.
+
+Asi que dicidi implementar el mapa mundial y que esten marcados en puntos rojos los lugares
+visitados, cosa que cualquier lugar nuevo añadido a la lista se podrá ver en el mapa de una 
+forma mas interactiva :D.
