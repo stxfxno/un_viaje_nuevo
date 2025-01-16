@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa y Lista de Lugares</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script 
-        async 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script async
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places">
-    </script>
+        </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -29,7 +30,7 @@
             width: 35%;
             max-width: 500px;
             background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             z-index: 2;
             transition: transform 0.3s ease;
         }
@@ -58,13 +59,13 @@
             margin-bottom: 1rem;
             padding: 1rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         #list li:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             cursor: pointer;
         }
 
@@ -100,7 +101,7 @@
             color: #1a73e8;
             border: none;
             border-radius: 24px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -108,7 +109,7 @@
 
         #reset-btn:hover {
             background-color: #f8f9fa;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #menu-toggle {
@@ -121,7 +122,7 @@
             background-color: white;
             border: none;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             cursor: pointer;
         }
 
@@ -168,8 +169,15 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         /* Barra de desplazamiento personalizada */
@@ -191,6 +199,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="list-container">
         <div class="container-header">
@@ -221,6 +230,19 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        const auth = firebase.auth();
+
+        // Verifica si el usuario está autenticado
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Si no está autenticado, redirige a la página de login
+                window.location.href = 'index.html'; // Reemplaza 'index.html' con tu página de inicio de sesión
+            } else {
+                // Si está autenticado, carga las fotos
+                loadPlaces();
+            }
+        });
+
         // Variables globales
         let map;
         let markers = [];
@@ -243,7 +265,7 @@
                 streetViewControl: false,
                 fullscreenControl: false
             };
-            
+
             map = new google.maps.Map(document.getElementById("map"), mapOptions);
             bounds = new google.maps.LatLngBounds();
             loadPlaces();
@@ -254,7 +276,7 @@
             const list = document.getElementById("list");
             const totalPlaces = document.getElementById("total-places");
             const viajesCollection = await db.collection("viajes").orderBy("timestamp", "desc").get();
-            
+
             totalPlaces.textContent = `Total: ${viajesCollection.size} lugares`;
 
             viajesCollection.forEach(doc => {
@@ -267,13 +289,13 @@
                 li.innerHTML = `
                     <strong>${formattedAddress}</strong>
                     <div>Visitado por: ${data.author}</div>
-                    <small>${date.toLocaleDateString("es-ES", { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric'
-                    })}</small>
+                    <small>${date.toLocaleDateString("es-ES", {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })}</small>
                 `;
-                
+
                 // Crear marcador e info window
                 const marker = new google.maps.Marker({
                     position: { lat: latitude, lng: longitude },
@@ -307,7 +329,7 @@
                     infoWindow.open(map, marker);
                     activeInfoWindow = infoWindow;
                     focusOnPlace({ lat: latitude, lng: longitude }, marker);
-                    
+
                     // En móvil, cerrar la lista al seleccionar un lugar
                     if (window.innerWidth <= 768) {
                         document.getElementById("list-container").classList.remove("expanded");
@@ -362,4 +384,5 @@
         window.onload = initMap;
     </script>
 </body>
+
 </html>
