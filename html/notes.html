@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notas</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -71,7 +72,7 @@
             color: #999;
             font-size: 0.85em;
         }
-        
+
 
         .note-content {
             color: #555;
@@ -342,77 +343,90 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Referencias a elementos del DOM
-        const notesList = document.getElementById('notesList');
-        const addButton = document.getElementById('addButton');
-        const modal = document.getElementById('noteModal');
-        const closeModal = document.getElementById('closeModal');
-        const noteForm = document.getElementById('noteForm');
-        const authorSelect = document.getElementById('author');
-        const messageTextarea = document.getElementById('message');
+        const auth = firebase.auth();
 
-        // Escuchar cambios en la colección de notas
-        const q = query(collection(db, 'notas'), orderBy('timestamp', 'desc'));
-        onSnapshot(q, (querySnapshot) => {
-            notesList.innerHTML = '';
-            querySnapshot.forEach((doc) => {
-                const note = doc.data();
-                const noteElement = document.createElement('div');
-                noteElement.className = `note ${note.autor.toLowerCase()}-note`;
-                noteElement.innerHTML = `
+        // Verifica si el usuario está autenticado
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Si no está autenticado, redirige a la página de login
+                window.location.href = 'index.html'; // Reemplaza 'index.html' con tu página de inicio de sesión
+            } else {
+                // Si está autenticado, carga las fotos
+                // Referencias a elementos del DOM
+                const notesList = document.getElementById('notesList');
+                const addButton = document.getElementById('addButton');
+                const modal = document.getElementById('noteModal');
+                const closeModal = document.getElementById('closeModal');
+                const noteForm = document.getElementById('noteForm');
+                const authorSelect = document.getElementById('author');
+                const messageTextarea = document.getElementById('message');
+
+                // Escuchar cambios en la colección de notas
+                const q = query(collection(db, 'notas'), orderBy('timestamp', 'desc'));
+                onSnapshot(q, (querySnapshot) => {
+                    notesList.innerHTML = '';
+                    querySnapshot.forEach((doc) => {
+                        const note = doc.data();
+                        const noteElement = document.createElement('div');
+                        noteElement.className = `note ${note.autor.toLowerCase()}-note`;
+                        noteElement.innerHTML = `
                     <div class="note-header">
                         <span class="note-author">${note.autor}</span>
                         <span class="note-date">${note.fecha}</span>
                     </div>
                     <div class="note-content">${note.mensaje}</div>
                 `;
-                notesList.appendChild(noteElement);
-            });
-        });
-
-        // Event Listeners
-        addButton.addEventListener('click', () => {
-            modal.classList.add('active');
-        });
-
-        closeModal.addEventListener('click', () => {
-            modal.classList.remove('active');
-            noteForm.reset();
-        });
-
-        noteForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const today = new Date();
-            const fecha = today.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
-            try {
-                await addDoc(collection(db, 'notas'), {
-                    mensaje: messageTextarea.value,
-                    autor: authorSelect.value === 'eli' ? 'Eli' : 'Stef',
-                    fecha: fecha,
-                    timestamp: today
+                        notesList.appendChild(noteElement);
+                    });
                 });
 
-                messageTextarea.value = '';
-                modal.classList.remove('active');
-            } catch (error) {
-                console.error("Error al añadir nota:", error);
-                alert('Error al guardar la nota');
+                // Event Listeners
+                addButton.addEventListener('click', () => {
+                    modal.classList.add('active');
+                });
+
+                closeModal.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                    noteForm.reset();
+                });
+
+                noteForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const today = new Date();
+                    const fecha = today.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    try {
+                        await addDoc(collection(db, 'notas'), {
+                            mensaje: messageTextarea.value,
+                            autor: authorSelect.value === 'eli' ? 'Eli' : 'Stef',
+                            fecha: fecha,
+                            timestamp: today
+                        });
+
+                        messageTextarea.value = '';
+                        modal.classList.remove('active');
+                    } catch (error) {
+                        console.error("Error al añadir nota:", error);
+                        alert('Error al guardar la nota');
+                    }
+                });
+
+                // Cerrar modal al hacer clic fuera
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                        noteForm.reset();
+                    }
+                });
             }
         });
 
-        // Cerrar modal al hacer clic fuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-                noteForm.reset();
-            }
-        });
+
     </script>
 </body>
 
