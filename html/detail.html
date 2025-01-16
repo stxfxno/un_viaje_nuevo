@@ -180,6 +180,19 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        const auth = firebase.auth();
+
+        // Verifica si el usuario está autenticado
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Si no está autenticado, redirige a la página de login
+                window.location.href = 'index.html'; // Reemplaza 'index.html' con tu página de inicio de sesión
+            } else {
+                // Si está autenticado, carga las fotos
+                loadPhotoDetails();
+            }
+        });
+
         function formatDate(dateString) {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             return new Date(dateString).toLocaleDateString('es-ES', options);
