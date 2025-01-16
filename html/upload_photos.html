@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subir Fotos de Viaje</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <!-- Google Maps JavaScript API y Places library -->
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -262,6 +261,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const storage = firebase.storage();
+        const auth = firebase.auth();
 
         // Variables globales para el mapa y el autocomplete
         let map;
@@ -270,22 +270,17 @@
 
         // Inicializar Google Maps y Places
         function initializeGoogleMaps() {
-            // Opciones iniciales del mapa (centrado en un punto por defecto)
             const mapOptions = {
                 center: { lat: 0, lng: 0 },
                 zoom: 2
             };
-
-            // Crear el mapa
             map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-            // Inicializar el autocompletado
             autocomplete = new google.maps.places.Autocomplete(
                 document.getElementById('locationInput'),
                 { types: ['geocode', 'establishment'] }
             );
 
-            // Escuchar el evento place_changed
             autocomplete.addListener('place_changed', function () {
                 const place = autocomplete.getPlace();
 
@@ -294,25 +289,19 @@
                     return;
                 }
 
-                // Mostrar el mapa
                 document.getElementById('map').style.display = 'block';
-
-                // Centrar el mapa en el lugar seleccionado
                 map.setCenter(place.geometry.location);
                 map.setZoom(15);
 
-                // Si ya existe un marcador, eliminarlo
                 if (marker) {
                     marker.setMap(null);
                 }
 
-                // Crear un nuevo marcador
                 marker = new google.maps.Marker({
                     map: map,
                     position: place.geometry.location
                 });
 
-                // Guardar los datos de ubicación
                 document.getElementById('latitude').value = place.geometry.location.lat();
                 document.getElementById('longitude').value = place.geometry.location.lng();
                 document.getElementById('placeId').value = place.place_id;
@@ -320,26 +309,24 @@
             });
         }
 
-        // Preview de la imagen
-        document.getElementById('image').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            const preview = document.getElementById('preview');
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
+        // Verificar si el usuario está autenticado
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Usuario autenticado
+                document.getElementById('uploadFormContainer').style.display = 'block';
+                console.log("Usuario autenticado:", user.email);
+            } else {
+                // Usuario no autenticado
+                alert('Por favor, inicia sesión para poder subir fotos.');
+                window.location.href = 'index.html'; // Redirigir a la página principal si no está autenticado
+                console.log("Usuario no autenticado");
             }
         });
 
-        // Manejar el envío del formulario
+        // Manejar el envío del formulario para subir fotos
         document.getElementById('uploadForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            // Mostrar loading overlay
             document.getElementById('loadingOverlay').style.display = 'flex';
 
             const file = document.getElementById('image').files[0];
@@ -354,12 +341,10 @@
             };
 
             try {
-                // Subir imagen a Storage
                 const storageRef = storage.ref(`fotos/${Date.now()}-${file.name}`);
                 const snapshot = await storageRef.put(file);
                 const imageUrl = await snapshot.ref.getDownloadURL();
 
-                // Guardar datos en Firestore
                 await db.collection('viajes').add({
                     imageUrl,
                     description,
@@ -369,9 +354,8 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // Redireccionar a la galería después de 1 segundo
                 setTimeout(() => {
-                    window.location.href = '../html/gallery_photos.html';
+                    window.location.href = 'gallery_photos.html';
                 }, 1000);
             } catch (error) {
                 console.error('Error al subir:', error);
