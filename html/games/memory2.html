@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Memoria con Colores</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+
+        .game-container {
+            flex: 3;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .scoreboard {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .game-board {
+            display: grid;
+            gap: 12px;
+            margin: 20px auto;
+            max-width: 500px;
+            padding: 15px;
+        }
+
+        /* Ajustes específicos para móvil */
+        @media (max-width: 767px) {
+            .game-board {
+                gap: 8px;
+                padding: 10px;
+                max-width: 300px;
+            }
+
+            .color-button {
+                padding-bottom: 85% !important;
+                /* Botones más pequeños en móvil */
+            }
+        }
+
+        .normal {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .difficult {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+
+            .difficult {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .scoreboard {
+                margin-left: 20px;
+            }
+        }
+
+        .color-button {
+            width: 100%;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-button.active {
+            transform: scale(1.05);
+            filter: brightness(1.3);
+            border-color: white;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+        }
+
+        .player-form {
+            text-align: center;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input,
+        select {
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #boton {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        button:disabled {
+            background: linear-gradient(145deg, #cccccc, #bbbbbb);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .score-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .score-list li {
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .score-list li:hover {
+            transform: translateX(5px);
+        }
+
+        #score {
+            font-size: 2em;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .user-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn {
+            background: linear-gradient(145deg, #f44336, #d32f2f);
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(145deg, #d32f2f, #b71c1c);
+        }
+
+        @media (max-width: 480px) {
+            .user-info {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            #score {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="user-info">
+        <span id="userEmail"></span>
+        <button onclick="logout()" class="logout-btn">Cerrar Sesión</button>
+    </div>
+    <div class="container">
+        <div class="game-container">
+            <div class="player-form" id="playerForm">
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+                <select id="difficulty" class="difficulty-select">
+                    <option value="normal">Normal (4 colores)</option>
+                    <option value="difficult">Difícil (8 colores)</option>
+                </select>
+                <button id="boton" onclick="startGame()">Comenzar Juego</button>
+            </div>
+            <div id="gameBoard" class="game-board" style="display: none;"></div>
+            <div class="controls" id="gameControls" style="display: none;">
+                <button id="boton" onclick="startSequence()">Iniciar Secuencia</button>
+                <p id="score">Puntaje: 0</p>
+            </div>
+        </div>
+        <div class="scoreboard">
+            <h2>Top Puntuaciones</h2>
+            <h3>Modo Normal</h3>
+            <ol id="normalScores" class="score-list"></ol>
+            <h3>Modo Difícil</h3>
+            <ol id="difficultScores" class="score-list"></ol>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar Firebase
+        const app = firebase.initializeApp({
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        });
+
+        const auth = firebase.auth();
+        const db = firebase.firestore(app);
+        let audioContext = null;
+
+        // Verificar autenticación
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('userEmail').textContent = user.email;
+                loadHighScores();
+            }
+        });
+
+        function logout() {
+            auth.signOut()
+                .then(() => {
+                    window.location.href = '../../index.html'; // Subes dos niveles
+                })
+                .catch(error => {
+                    console.error('Error al cerrar sesión:', error);
+                });
+        }
+
+
+        // Configuración del juego
+        const normalColors = [
+            '#FF0000',  // Rojo brillante
+            '#00FF00',  // Verde brillante
+            '#0088FF',  // Azul brillante
+            '#FFD700'   // Amarillo dorado
+        ];
+
+        const difficultColors = [
+            ...normalColors,
+            '#FF1493',  // Rosa fuerte
+            '#00FFFF',  // Cian brillante
+            '#FFA500',  // Naranja
+            '#9400D3'   // Púrpura
+        ]; let sequence = [];
+        let playerSequence = [];
+        let score = 0;
+        let isPlaying = false;
+        let currentPlayer = '';
+        let currentDifficulty = 'normal';
+        const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playTone(frequency) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            gainNode.gain.value = 0.3; // Volumen reducido para no ser muy fuerte
+
+            // Añadir efecto de fade in/out para un sonido más suave
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        async function loadHighScores() {
+            const modes = ['normal', 'difficult'];
+
+            for (const mode of modes) {
+                try {
+                    const scoresRef = await db.collection('scores')
+                        .where('difficulty', '==', mode)
+                        .orderBy('score', 'desc')
+                        .limit(3)
+                        .get();
+
+                    const scoresList = document.getElementById(`${mode}Scores`);
+                    scoresList.innerHTML = '';
+
+                    if (scoresRef.empty) {
+                        scoresList.innerHTML = '<li>No hay puntuaciones aún</li>';
+                        continue;
+                    }
+
+                    scoresRef.docs.forEach(doc => {
+                        const scoreData = doc.data();
+                        const li = document.createElement('li');
+                        li.textContent = `${scoreData.playerName}: ${scoreData.score}`;
+                        scoresList.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error('Error loading scores:', error);
+                    // Cargar puntuaciones sin ordenar mientras se crea el índice
+                    try {
+                        const simpleScoresRef = await db.collection('scores')
+                            .where('difficulty', '==', mode)
+                            .limit(3)
+                            .get();
+
+                        const scoresList = document.getElementById(`${mode}Scores`);
+                        scoresList.innerHTML = '';
+
+                        if (simpleScoresRef.empty) {
+                            scoresList.innerHTML = '<li>No hay puntuaciones aún</li>';
+                            continue;
+                        }
+
+                        simpleScoresRef.docs.forEach(doc => {
+                            const scoreData = doc.data();
+                            const li = document.createElement('li');
+                            li.textContent = `${scoreData.playerName}: ${scoreData.score}`;
+                            scoresList.appendChild(li);
+                        });
+                    } catch (fallbackError) {
+                        const scoresList = document.getElementById(`${mode}Scores`);
+                        scoresList.innerHTML = '<li>Error al cargar puntuaciones</li>';
+                    }
+                }
+            }
+        }
+
+        function createGameBoard() {
+            initAudio(); // Inicializar audio después de la interacción del usuario
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            gameBoard.className = `game-board ${currentDifficulty}`;
+
+            const colors = currentDifficulty === 'normal' ? normalColors : difficultColors;
+
+            colors.forEach((color, index) => {
+                const button = document.createElement('button');
+                button.className = 'color-button';
+                button.style.backgroundColor = color;
+                button.onclick = () => handlePlayerClick(index);
+                gameBoard.appendChild(button);
+            });
+        }
+
+        // ... (resto del código igual) ...
+        function startGame() {
+            const nameInput = document.getElementById('playerName');
+            const difficultySelect = document.getElementById('difficulty');
+
+            if (!nameInput.value.trim()) {
+                alert('Por favor ingresa tu nombre');
+                return;
+            }
+
+            currentPlayer = nameInput.value.trim();
+            currentDifficulty = difficultySelect.value;
+
+            document.getElementById('playerForm').style.display = 'none';
+            document.getElementById('gameBoard').style.display = 'grid';
+            document.getElementById('gameControls').style.display = 'block';
+
+            sequence = [];
+            playerSequence = [];
+            score = 0;
+            document.getElementById('score').textContent = `Puntaje: ${score}`;
+
+            createGameBoard();
+            loadHighScores();
+        }
+
+        async function saveScore() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                await db.collection('scores').add({
+                    playerName: currentPlayer,
+                    score: score,
+                    difficulty: currentDifficulty,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    userEmail: user.email
+                });
+
+                loadHighScores();
+            } catch (error) {
+                console.error('Error saving score:', error);
+                alert('Error al guardar la puntuación');
+            }
+        }
+
+        function startSequence() {
+            if (isPlaying) return;
+
+            initAudio(); // Aseguramos que el audio esté inicializado
+            sequence.push(Math.floor(Math.random() * (currentDifficulty === 'normal' ? 4 : 8)));
+            isPlaying = true;
+            playerSequence = [];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= sequence.length) {
+                    clearInterval(interval);
+                    isPlaying = false;
+                    return;
+                }
+
+                const button = document.querySelectorAll('.color-button')[sequence[i]];
+                button.classList.add('active');
+                playTone(frequencies[sequence[i]]);
+
+                setTimeout(() => {
+                    button.classList.remove('active');
+                }, 500);
+
+                i++;
+            }, 1000);
+        }
+
+        function handlePlayerClick(colorIndex) {
+            if (isPlaying) return;
+
+            initAudio(); // Aseguramos que el audio esté inicializado
+            const button = document.querySelectorAll('.color-button')[colorIndex];
+            button.classList.add('active');
+            playTone(frequencies[colorIndex]);
+
+            setTimeout(() => {
+                button.classList.remove('active');
+            }, 500);
+
+            playerSequence.push(colorIndex);
+
+            if (playerSequence[playerSequence.length - 1] !== sequence[playerSequence.length - 1]) {
+                // Juego terminado
+                const finalScore = score;
+                setTimeout(() => {
+                    alert(`¡Juego terminado! Tu puntaje final es: ${finalScore}`);
+                    saveScore();
+                    sequence = [];
+                    playerSequence = [];
+                    score = 0;
+                    document.getElementById('score').textContent = `Puntaje: ${score}`;
+                    document.getElementById('playerForm').style.display = 'block';
+                    document.getElementById('gameBoard').style.display = 'none';
+                    document.getElementById('gameControls').style.display = 'none';
+                }, 500);
+                return;
+            }
+
+            if (playerSequence.length === sequence.length) {
+                score++;
+                document.getElementById('score').textContent = `Puntaje: ${score}`;
+                playerSequence = [];
+                setTimeout(startSequence, 1000);
+            }
+        }
+
+        // Las funciones startGame, saveScore, startSequence y handlePlayerClick permanecen iguales
+    </script>
+</body>
+
+</html>
