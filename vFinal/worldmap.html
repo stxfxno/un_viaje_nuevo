@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa y Lista de Lugares</title>
+    <link rel="stylesheet" href="../css/all_in_one.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places">
+        </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="list-container">
+        <div class="container-header">
+            <h2>Lugares Visitados</h2>
+            <div id="total-places"></div>
+        </div>
+        <ul id="list"></ul>
+    </div>
+    <div id="map-container">
+        <button id="menu-toggle">☰</button>
+        <button id="reset-btn">Mostrar Todos</button>
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Variables globales
+        let map;
+        let markers = [];
+        let bounds;
+        let activeInfoWindow = null;
+
+        // Obtener ID de la sala de la URL
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('id_sala');
+
+        if (!roomId) {
+            alert("No se encontró un id_sala válido en la URL.");
+            window.location.href = 'dashboard.html';
+        }
+
+        // Verificar autenticación
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                loadPlaces(roomId);
+            }
+        });
+
+        // Inicializar el mapa
+        function initMap() {
+            const mapOptions = {
+                center: { lat: -12.0464, lng: -77.0428 },
+                zoom: 6,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ],
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
+            };
+
+            map = new google.maps.Map(document.getElementById("map"), mapOptions);
+            bounds = new google.maps.LatLngBounds();
+        }
+
+        // Cargar lugares
+        async function loadPlaces(roomId) {
+            const list = document.getElementById("list");
+            const totalPlaces = document.getElementById("total-places");
+
+            try {
+                const paseosCollection = await db.collection("paseos")
+                    .where("id_sala", "==", roomId)
+                    .orderBy("timestamp", "desc")
+                    .get();
+
+                if (paseosCollection.empty) {
+                    totalPlaces.textContent = "No hay lugares para esta sala.";
+                    return;
+                }
+
+                totalPlaces.textContent = `Total: ${paseosCollection.size} lugares`;
+
+                paseosCollection.forEach(doc => {
+                    const data = doc.data();
+                    const { formattedAddress, latitude, longitude } = data.location;
+                    const date = data.timestamp.toDate();
+
+                    // Crear elemento de lista
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                <strong>${formattedAddress}</strong>
+                <div>Visitado por: ${data.author}</div>
+                <small>${date.toLocaleDateString("es-ES", {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    })}</small>
+            `;
+
+                    // Crear marcador e info window
+                    const marker = new google.maps.Marker({
+                        position: { lat: latitude, lng: longitude },
+                        map: map,
+                        title: formattedAddress,
+                        animation: google.maps.Animation.DROP
+                    });
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                    <div style="padding: 10px;">
+                        <img src="${data.imageUrl}" alt="Foto del lugar" style="width: 100%; height: auto; max-height: 300px; object-fit: cover;">
+                        <h3 style="margin: 0 0 5px;">${formattedAddress}</h3>
+                        <p style="margin: 0;">Visitado por: ${data.author}</p>
+                    </div>
+                `
+                    });
+
+                    // Eventos del marcador
+                    marker.addListener("click", () => {
+                        if (activeInfoWindow) activeInfoWindow.close();
+                        infoWindow.open(map, marker);
+                        activeInfoWindow = infoWindow;
+                        focusOnPlace({ lat: latitude, lng: longitude }, marker);
+                    });
+
+                    // Eventos del elemento de lista
+                    li.addEventListener("click", () => {
+                        if (activeInfoWindow) activeInfoWindow.close();
+                        infoWindow.open(map, marker);
+                        activeInfoWindow = infoWindow;
+                        focusOnPlace({ lat: latitude, lng: longitude }, marker);
+
+                        // En móvil, cerrar la lista al seleccionar un lugar
+                        if (window.innerWidth <= 768) {
+                            document.getElementById("list-container").classList.remove("expanded");
+                        }
+                    });
+
+                    markers.push(marker);
+                    bounds.extend(marker.position);
+                    list.appendChild(li);
+                });
+
+                map.fitBounds(bounds);
+            } catch (error) {
+                console.error("Error cargando lugares: ", error);
+            }
+        }
+
+        // Centrar en un lugar
+        function focusOnPlace(location, selectedMarker) {
+            map.panTo(location);
+            map.setZoom(15);
+
+            markers.forEach(marker => {
+                marker.setAnimation(null);
+            });
+
+            selectedMarker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+
+        // Eventos
+        document.getElementById("reset-btn").addEventListener("click", () => {
+            if (activeInfoWindow) activeInfoWindow.close();
+            map.fitBounds(bounds);
+            markers.forEach(marker => marker.setAnimation(null));
+        });
+
+        // Funcionalidad móvil
+        const listContainer = document.getElementById("list-container");
+        const containerHeader = document.querySelector(".container-header");
+        const menuToggle = document.getElementById("menu-toggle");
+
+        function toggleList() {
+            listContainer.classList.toggle("expanded");
+        }
+
+        containerHeader.addEventListener("click", () => {
+            if (window.innerWidth <= 768) {
+                toggleList();
+            }
+        });
+
+        menuToggle.addEventListener("click", toggleList);
+
+        // Inicializar
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

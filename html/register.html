@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sección izquierda -->
+        <div class="left-section">
+            <img src="../images/logo.png" alt="Logo">
+            <h2>Welcome Back!</h2>
+            <p>Es hora de que la distancia sea más corta</p>
+            <button id="loginButton">SIGN IN</button>
+        </div>
+
+        <!-- Sección derecha -->
+        <div class="right-section">
+            <h2>Welcome</h2>
+            <p>Login in to your account to continue</p>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <input type="text" id="nombre" placeholder="Nombre" required>
+            <input type="text" id="apellido" placeholder="Apellido" required>
+            <input type="date" id="fechaNacimiento" placeholder="Fecha de nacimiento" required>
+            <button id="registerButton">Ingresar</button>
+            <button id="googleSignIn" class="google-btn">
+                <i class="fab fa-google"></i>
+                Ingresar con Google
+            </button>
+            <p>Don't have an account? <a href="../index.html">sign up</a></p>
+            <p id="error" style="color: red;"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Función para guardar datos del usuario
+        async function guardarDatosUsuario(userId, userData) {
+            try {
+                await setDoc(doc(db, "usuarios", userId), userData);
+                window.location.href = '/dashboard.html';
+            } catch (error) {
+                document.getElementById('error').textContent = "Error al guardar datos: " + error.message;
+            }
+        }
+
+        // Registro con correo y contraseña
+        document.getElementById('registerButton').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const nombre = document.getElementById('nombre').value;
+            const apellido = document.getElementById('apellido').value;
+            const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const userData = {
+                    nombre,
+                    apellido,
+                    fechaNacimiento,
+                    email,
+                    metodoRegistro: 'email',
+                    datosCompletos: true
+                };
+                await guardarDatosUsuario(userCredential.user.uid, userData);
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+
+        // Registro con Google
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+
+                const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                if (userDoc.exists() && userDoc.data().datosCompletos) {
+                    window.location.href = '/dashboard.html';
+                } else {
+                    await setDoc(doc(db, "usuarios", user.uid), {
+                        email: user.email,
+                        metodoRegistro: 'google',
+                        datosCompletos: false
+                    });
+                    window.location.href = '/test/completar-perfil.html';
+                }
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+
+        // Navegar al inicio de sesión
+        document.getElementById('loginButton').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Photos</title>
+    <link rel="stylesheet" href="../css/gallery_photos.css">
+    <script type="module" src="gallery_photos.js" defer></script>
+    <style>
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .photo-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .photo-info {
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .photo-info h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Nuestras Fotos de Viaje</h1>
+        </header>
+        <main>
+            <div id="photosGrid" class="gallery"></div>
+        </main>
+        <!-- El enlace ahora tiene un id para poder modificarlo dinámicamente -->
+        <a id="uploadLink" class="action-button add-button" title="Añadir foto">+</a>
+        <a id="worldMap" class="action-button world-button" title="Ver mapa">🌎</a>
+        <a id="games" class="action-button games-button" title="Juegos">🎮</a>
+        <a id="notes" class="action-button notes-button" title="Notas">📝</a>
+        <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
+        <a id="logoutButton" class="action-button logout-button"
+            title="Logout">🚪</a>
+        <footer>
+            <p>Powered by Stef-Ware</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Obtener ID de la sala de la URL
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('id_sala');
+
+        // Referencia al contenedor de fotos
+        const photosGrid = document.getElementById('photosGrid');
+
+        // Función para cargar fotos de la sala
+        async function loadPhotosByRoom(roomId) {   
+            try {
+                const photosRef = collection(db, "paseos");
+                const q = query(photosRef, where("id_sala", "==", roomId));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    photosGrid.innerHTML = "<p>No photos available for this room.</p>";
+                    return;
+                }
+
+                querySnapshot.forEach(doc => {
+                    const photoData = doc.data();
+                    displayPhoto(photoData);
+                });
+            } catch (error) {
+                console.error("Error loading photos:", error);
+                photosGrid.innerHTML = "<p>Error loading photos. Please try again later.</p>";
+            }
+        }
+
+        // Función para mostrar una foto en la galería
+        function displayPhoto(photoData) {
+            const photoCard = document.createElement('div');
+            photoCard.className = "card";
+            const formattedDate = formatDate(photoData.date);
+
+            photoCard.innerHTML =
+                `<img src="${photoData.imageUrl}" alt="Foto del viaje" class="card-image">
+                <div class="card-content">
+                    <div class="card-author">Subido por: ${photoData.author}</div>
+                    <div class="card-date">${formattedDate}</div>
+                    <div class="card-description">${photoData.description}</div>
+
+                    <div class="location-text"> ${photoData.location.formattedAddress}</div>
+                </div>`
+                ;
+
+            photosGrid.appendChild(photoCard);
+        }
+
+        // Función para formatear la fecha al estilo deseado
+        function formatDate(dateString) {
+            const date = new Date(dateString); // Convertir la fecha a un objeto Date
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return new Intl.DateTimeFormat('es-ES', options).format(date);
+        }
+
+        // Cerrar sesión
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = "../index.html"; // Redirigir al login
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Cargar fotos de la sala al cargar la página
+        if (roomId) {
+            loadPhotosByRoom(roomId);
+
+            // Actualizar el enlace dinámicamente con roomId
+            const uploadLink = document.getElementById("uploadLink");
+            uploadLink.href = `upload_photos.html?id_sala=${roomId}`;
+
+            const worldMap = document.getElementById("worldMap");
+            worldMap.href = `worldmap.html?id_sala=${roomId}`;
+
+            const games = document.getElementById("games");
+            games.href = `games.html?id_sala=${roomId}`;
+
+            const notes = document.getElementById("notes");
+            notes.href = `notes.html?id_sala=${roomId}`;
+
+            const dates = document.getElementById("dates");
+            dates.href = `dates.html?id_sala=${roomId}`;
+
+        } else {
+            photosGrid.innerHTML = "<p>Invalid room ID.</p>";
+        }
+
+
+
+    </script>
+</body>
+
+</html>

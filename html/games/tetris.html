@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Game</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        #tetris {
+            position: relative;
+            width: 320px;
+            height: 640px;
+            border: 2px solid #fff;
+            background-color: #111;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #scoreboard {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            #game-container {
+                flex-direction: row;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="tetris">
+            <canvas id="game"></canvas>
+        </div>
+        <div id="scoreboard">
+            <p>Score: <span id="score">0</span></p>
+            <p>High Scores:</p>
+            <ul id="highScores"></ul>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <script>
+
+        // Initialize Firebase
+        const app = firebase.initializeApp({
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        });
+        const db = firebase.firestore(app);
+
+        // Inicializar el canvas y contexto
+        const canvas = document.getElementById("game");
+        const context = canvas.getContext("2d");
+
+        // Tamaño del tablero
+        const ROWS = 20;
+        const COLUMNS = 10;
+        const BLOCK_SIZE = 30;
+
+        canvas.width = COLUMNS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
+
+        // Colores de las piezas
+        const COLORS = ["cyan", "blue", "orange", "yellow", "green", "purple", "red"];
+
+        // Tablero vacío
+        let board = Array.from({ length: ROWS }, () => Array(COLUMNS).fill(0));
+
+        // Piezas y su rotación
+        const PIECES = [
+            [[1, 1, 1, 1]], // Línea
+            [
+                [2, 0, 0],
+                [2, 2, 2],
+            ], // L
+            [
+                [0, 0, 3],
+                [3, 3, 3],
+            ], // L invertida
+            [
+                [4, 4],
+                [4, 4],
+            ], // Cuadrado
+            [
+                [0, 5, 5],
+                [5, 5, 0],
+            ], // Z
+            [
+                [6, 6, 0],
+                [0, 6, 6],
+            ], // S
+            [
+                [0, 7, 0],
+                [7, 7, 7],
+            ], // T
+        ];
+
+        // Variables del juego
+        let currentPiece = null;
+        let currentX = 0;
+        let currentY = 0;
+        let score = 0;
+
+        // Crear una nueva pieza
+        function createPiece() {
+            const index = Math.floor(Math.random() * PIECES.length);
+            currentPiece = PIECES[index];
+            currentX = Math.floor(COLUMNS / 2) - Math.ceil(currentPiece[0].length / 2);
+            currentY = 0;
+        }
+
+        // Dibujar el tablero
+        function drawBoard() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar tablero
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLUMNS; col++) {
+                    if (board[row][col]) {
+                        context.fillStyle = COLORS[board[row][col] - 1];
+                        context.fillRect(
+                            col * BLOCK_SIZE,
+                            row * BLOCK_SIZE,
+                            BLOCK_SIZE,
+                            BLOCK_SIZE
+                        );
+                        context.strokeStyle = "black";
+                        context.strokeRect(
+                            col * BLOCK_SIZE,
+                            row * BLOCK_SIZE,
+                            BLOCK_SIZE,
+                            BLOCK_SIZE
+                        );
+                    }
+                }
+            }
+
+            // Dibujar pieza actual
+            if (currentPiece) {
+                currentPiece.forEach((row, rIndex) => {
+                    row.forEach((value, cIndex) => {
+                        if (value) {
+                            context.fillStyle = COLORS[value - 1];
+                            context.fillRect(
+                                (currentX + cIndex) * BLOCK_SIZE,
+                                (currentY + rIndex) * BLOCK_SIZE,
+                                BLOCK_SIZE,
+                                BLOCK_SIZE
+                            );
+                            context.strokeStyle = "black";
+                            context.strokeRect(
+                                (currentX + cIndex) * BLOCK_SIZE,
+                                (currentY + rIndex) * BLOCK_SIZE,
+                                BLOCK_SIZE,
+                                BLOCK_SIZE
+                            );
+                        }
+                    });
+                });
+            }
+        }
+
+        // Mover pieza
+        function movePiece(dx, dy) {
+            currentX += dx;
+            currentY += dy;
+            drawBoard();
+        }
+
+        // Rotar pieza
+        function rotatePiece() {
+            const rotated = currentPiece[0].map((_, index) =>
+                currentPiece.map((row) => row[index]).reverse()
+            );
+            currentPiece = rotated;
+            drawBoard();
+        }
+
+        // Colocar pieza instantáneamente
+        function hardDrop() {
+            while (!collision(0, 1)) {
+                currentY++;
+            }
+            placePiece();
+            createPiece();
+            drawBoard();
+        }
+
+        // Detectar colisión
+        function collision(dx, dy) {
+            for (let row = 0; row < currentPiece.length; row++) {
+                for (let col = 0; col < currentPiece[row].length; col++) {
+                    if (currentPiece[row][col]) {
+                        const newX = currentX + col + dx;
+                        const newY = currentY + row + dy;
+
+                        if (
+                            newX < 0 ||
+                            newX >= COLUMNS ||
+                            newY >= ROWS ||
+                            board[newY] && board[newY][newX]
+                        ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Colocar pieza en el tablero
+        function placePiece() {
+            currentPiece.forEach((row, rIndex) => {
+                row.forEach((value, cIndex) => {
+                    if (value) {
+                        board[currentY + rIndex][currentX + cIndex] = value;
+                    }
+                });
+            });
+            clearLines();
+        }
+
+        // Limpiar líneas completas
+        function clearLines() {
+            board = board.filter((row) => row.some((cell) => cell === 0));
+            while (board.length < ROWS) {
+                board.unshift(Array(COLUMNS).fill(0));
+            }
+            score += 10;
+            document.getElementById("score").textContent = score;
+        }
+
+        // Controles del teclado
+        document.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case "a": // Mover a la izquierda
+                case "A":
+                    if (!collision(-1, 0)) movePiece(-1, 0);
+                    break;
+                case "d": // Mover a la derecha
+                case "D":
+                    if (!collision(1, 0)) movePiece(1, 0);
+                    break;
+                case "w": // Rotar la pieza
+                case "W":
+                    rotatePiece();
+                    break;
+                case "s": // Mover la pieza hacia abajo
+                case "S":
+                    if (!collision(0, 1)) movePiece(0, 1);
+                    break;
+                case " ": // Hard drop
+                    hardDrop();
+                    break;
+            }
+        });
+
+        // Iniciar el juego
+        createPiece();
+        setInterval(() => {
+            if (!collision(0, 1)) {
+                movePiece(0, 1);
+            } else {
+                placePiece();
+                createPiece();
+            }
+            drawBoard();
+        }, 500);
+
+
+
+
+    </script>
+</body>
+
+</html>

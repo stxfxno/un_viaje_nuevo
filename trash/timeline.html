@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <style>
+        /* Previous CSS remains the same */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: #ff69b4;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #ff69b4;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            top: 15px;
+            right: -12px;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+
+        .timeline-item:nth-child(even)::after {
+            left: -12px;
+        }
+
+        .timeline-content {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .timeline-date {
+            font-weight: bold;
+            color: #ff69b4;
+            margin-bottom: 5px;
+        }
+
+        .add-date-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ff69b4;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            background: #ff69b4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .modal button.cancel {
+            background: grey;
+        }
+
+        /* Previous styles remain */
+        .countdown-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .countdown {
+            font-size: 1.2em;
+            color: #ff69b4;
+            margin-top: 10px;
+        }
+
+        .timeline-item {
+            cursor: pointer;
+        }
+
+        .timeline-item:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s;
+        }
+
+        .selected {
+            border: 2px solid #ff69b4;
+        }
+    </style>
+</head>
+<body>
+    <div class="countdown-container" id="countdownContainer">
+        <h3>Cuenta regresiva para:</h3>
+        <div id="eventName"></div>
+        <div class="countdown" id="countdown"></div>
+    </div>
+
+    <div class="timeline" id="timeline"></div>
+    <button class="add-date-btn">+</button>
+
+    <div class="modal" id="dateModal">
+        <div class="modal-content">
+            <h2>Agregar Fecha Importante</h2>
+            <input type="datetime-local" id="date" required>
+            <textarea id="description" placeholder="Descripción del evento" required></textarea>
+            <button onclick="saveDate()">Guardar</button>
+            <button class="cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                loadDates(user.uid);
+            }
+        });
+
+        let selectedDateId = null;
+        
+        function loadDates(userId) {
+            const timeline = document.getElementById('timeline');
+            
+            db.collection('dates')
+                .where('userId', '==', userId)
+                .onSnapshot(snapshot => {
+                    const dates = [];
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added' || change.type === 'modified') {
+                            dates.push({ id: change.doc.id, ...change.doc.data() });
+                        }
+                    });
+                    
+                    dates.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    updateTimeline(dates);
+                });
+        }
+
+        function updateTimeline(dates) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            dates.forEach(data => {
+                const date = new Date(data.date);
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'timeline-item';
+                if (data.id === selectedDateId) itemDiv.classList.add('selected');
+                
+                itemDiv.innerHTML = `
+                    <div class="timeline-content">
+                        <div class="timeline-date">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
+                        <p>${data.description}</p>
+                    </div>
+                `;
+                
+                itemDiv.onclick = () => selectDate(data);
+                timeline.appendChild(itemDiv);
+            });
+        }
+
+        function selectDate(data) {
+            const date = new Date(data.date);
+            const now = new Date();
+            
+            if (date > now) {
+                selectedDateId = data.id;
+                document.getElementById('countdownContainer').style.display = 'block';
+                document.getElementById('eventName').textContent = data.description;
+                updateCountdown(date);
+                setInterval(() => updateCountdown(date), 1000);
+            }
+        }
+
+        function updateCountdown(targetDate) {
+            const now = new Date();
+            const diff = targetDate - now;
+            
+            if (diff <= 0) {
+                document.getElementById('countdown').innerHTML = 'Evento pasado';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('countdown').innerHTML = 
+                `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function saveDate() {
+            const dateInput = document.getElementById('date').value;
+            const description = document.getElementById('description').value;
+            
+            if (!dateInput || !description) return;
+
+            const newDate = {
+                date: dateInput,
+                description: description,
+                userId: auth.currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            db.collection('dates').add(newDate)
+                .then(closeModal)
+                .catch(error => console.error('Error:', error));
+        }
+
+        const modal = document.getElementById('dateModal');
+        const addBtn = document.querySelector('.add-date-btn');
+
+        addBtn.onclick = () => modal.style.display = 'block';
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.getElementById('date').value = '';
+            document.getElementById('description').value = '';
+        }
+
+        function saveDate() {
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value;
+            
+            if (!date || !description) return;
+
+            const newDate = {
+                date: date,
+                description: description,
+                userId: auth.currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            db.collection('dates').add(newDate)
+                .then(closeModal)
+                .catch(error => console.error('Error:', error));
+        }
+
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

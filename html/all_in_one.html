@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa y Lista de Lugares</title>
+    <link rel="stylesheet" href="../css/all_in_one.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByPY8bgi1E1hJdgLWwmAxtVTHVxdLKJhM&libraries=places">
+        </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="list-container">
+        <div class="container-header">
+            <h2>Lugares Visitados</h2>
+            <div id="total-places"></div>
+        </div>
+        <ul id="list"></ul>
+    </div>
+    <div id="map-container">
+        <button id="menu-toggle">☰</button>
+        <button id="reset-btn">Mostrar Todos</button>
+        <div id="map"></div>
+    </div>
+
+    <script src="../js/all_in_one.js"> 
+    </script>
+</body>
+
+</html>

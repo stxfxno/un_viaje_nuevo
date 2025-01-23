@@ -5,25 +5,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio de Sesión</title>
-    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
-    <div class="login-container">
-        <h2>Inicia Sesión</h2>
-        <input type="email" id="email" placeholder="Correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
-        <button id="loginButton">Ingresar</button>
-        <p id="error" style="color: red; display: none;">Correo o contraseña incorrectos</p>
-    </div>    
+    <div class="container">
+        <!-- Sección izquierda -->
+        <div class="left-section">
+            <img src="../images/logo.png" alt="Logo">
+            <h2>Welcome Back!</h2>
+            <p>Es hora de que la distancia sea más corta</p>
+            <button id="registerButton">SIGN UP</button>
+        </div>
 
-    <!-- Firebase SDKs -->
+        <!-- Sección derecha -->
+        <div class="right-section">
+            <h2>Welcome</h2>
+            <p>Login in to your account to continue</p>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <p><a href="#">Forgot your password?</a></p>
+            <button id="loginButton">Ingresar</button>
+            <button id="googleSignIn" class="google-btn">
+                <i class="fab fa-google"></i>
+                Ingresar con Google
+            </button>
+            <p>Don't have an account? <a href="vFinal/register.html">sign up</a></p>
+        </div>
+    </div>
+
+
     <script type="module">
-        // Importar Firebase
+        // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, query, collection, where, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
             authDomain: "un-viaje-nuevo.firebaseapp.com",
@@ -34,29 +52,78 @@
             measurementId: "G-J021Q5QKX6"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
 
-        // Manejar el inicio de sesión
+        // Función para verificar si el usuario está en una sala activa
+        async function checkActiveRoom(userId) {
+            const salasRef = collection(db, "salas");
+            const q = query(
+                salasRef,
+                where("miembros", "array-contains", userId),
+                where("estado", "==", "activa")
+            );
+
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const activeRoom = querySnapshot.docs[0];
+                return { exists: true, id: activeRoom.id }; // Retorna el estado y el ID de la sala
+            }
+            return { exists: false };
+        }
+
+
+        // Función para redirigir según el estado del usuario
+        async function redirectUser(userId) {
+            try {
+                const activeRoom = await checkActiveRoom(userId);
+
+                if (activeRoom.exists) {
+                    // Redirigir a gallery_photos con el ID de la sala activa
+                    window.location.href = `vFinal/gallery_photos.html?id_sala=${activeRoom.id}`;
+                } else {
+                    // Si no está en una sala activa, redirigir al dashboard
+                    window.location.href = "vFinal/dashboard.html";
+                }
+            } catch (error) {
+                console.error("Error checking room status:", error);
+                window.location.href = "vFinal/dashboard.html"; // Redirigir por defecto en caso de error
+            }
+        }
+
+
+
+        //enviar a la pagina de registro si le da al boton de registrarse
+        document.getElementById('registerButton').addEventListener('click', () => {
+            window.location.href = "vFinal/register.html";
+        });
+
+        // Manejar el inicio de sesión por correo
         document.getElementById('loginButton').addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorElement = document.getElementById('error');
 
             try {
-                // Intentamos autenticar con el correo y la contraseña ingresados
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-                // Si la autenticación es exitosa, redirige a la siguiente vista
-                alert("Inicio de sesión exitoso");
-                window.location.href = "html/gallery_photos.html";
+                await redirectUser(userCredential.user.uid);
             } catch (error) {
-                // Si hay un error (por ejemplo, credenciales incorrectas)
                 console.error(error);
-                errorElement.style.display = "block"; // Mostrar mensaje de error
+                errorElement.style.display = "block";
             }
+        });
 
+        // Manejar el inicio de sesión con Google
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                await redirectUser(result.user.uid);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('error').style.display = "block";
+            }
         });
     </script>
 </body>

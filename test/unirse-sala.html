@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Unirse a la Sala - Un Viaje Nuevo</title>
+    <style>
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .join-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #4285f4;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="join-card">
+            <h2>Unirse a la Sala</h2>
+            <p id="roomInfo">Verificando sala...</p>
+            <button id="joinBtn" style="display: none;">Unirse a la Sala</button>
+            <p id="error" class="error"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            query,
+            where,
+            getDocs,
+            doc,
+            getDoc,
+            updateDoc,
+            arrayUnion
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firestore
+        const db = getFirestore(app);
+
+        // Verificar si el usuario ya está en una sala activa
+        async function checkExistingActiveRoom(userId) {
+            const salasRef = collection(db, "salas"); // Uso correcto de 'collection'
+            const q = query(salasRef, where("miembros", "array-contains", userId), where("estado", "==", "activa"));
+            const querySnapshot = await getDocs(q);
+            return !querySnapshot.empty; // Devuelve true si hay salas activas, false si no
+        }
+
+
+        // Verificar autenticación y sala
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                document.getElementById('error').textContent =
+                    "Por favor, inicia sesión para unirte a la sala";
+                return;
+            }
+
+            try {
+                // Verificar si el usuario ya está en una sala activa
+                const hasActiveRoom = await checkExistingActiveRoom(user.uid);
+                if (hasActiveRoom) {
+                    document.getElementById('roomInfo').textContent =
+                        "Ya estás en una sala activa. No puedes unirte a otra sala.";
+                    setTimeout(() => {
+                        window.location.href = '../html/gallery_photos.html';
+                    }, 2000);
+                    return;
+                }
+                // Código adicional para verificar la sala...
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+
+
+        // Manejar unión a la sala
+        document.getElementById('joinBtn').addEventListener('click', async () => {
+            try {
+                const user = auth.currentUser;
+                const salaRef = doc(db, "salas", roomId);
+
+                await updateDoc(salaRef, {
+                    miembros: arrayUnion(user.uid),
+                    estado: 'activa'
+                });
+
+                window.location.href = '/test/dashboard.html';
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+    </script>
+</body>
+
+</html>

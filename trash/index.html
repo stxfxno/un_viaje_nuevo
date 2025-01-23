@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sección izquierda -->
+        <div class="left-section">
+            <img src="images/logo.png" alt="Logo">
+            <h2>Welcome Back!</h2>
+            <p>Es hora de que la distancia sea más corta</p>
+            <button id="registerButton">SIGN IN</button>
+        </div>
+    
+        <!-- Sección derecha -->
+        <div class="right-section">
+            <h2>Welcome</h2>
+            <p>Login in to your account to continue</p>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <p><a href="#">Forgot your password?</a></p>
+            <button id="loginButton">Ingresar</button>
+            <button id="googleSignIn" class="google-btn">
+                <i class="fab fa-google"></i>
+                Ingresar con Google
+            </button>
+            <p>Don't have an account? <a href="html/register.html">sign up</a></p>
+        </div>
+    </div>
+    
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

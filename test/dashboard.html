@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Un Viaje Nuevo</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .welcome-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .create-room-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .active-room-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .invitation-link {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background-color: #28a745;
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .user-info {
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+        
+        <div class="welcome-card">
+            <div class="user-info">
+                <h2 id="welcomeMessage">Bienvenido/a</h2>
+                <p id="userEmail"></p>
+            </div>
+        </div>
+
+        <div class="create-room-card">
+            <h3>Crear una Nueva Conexión</h3>
+            <p>Crea un espacio especial para ti y tu pareja donde podrán compartir momentos juntos.</p>
+            <button id="createRoomBtn">Crear Nueva Sala</button>
+            
+            <div id="invitationSection" style="display: none;">
+                <h4>¡Sala creada! Comparte este enlace con tu pareja:</h4>
+                <div class="invitation-link">
+                    <span id="invitationLink"></span>
+                    <button class="copy-btn" onclick="copyInvitationLink()">Copiar</button>
+                </div>
+                <p>El enlace expirará en 24 horas.</p>
+            </div>
+        </div>
+
+        <div id="activeRooms">
+            <!-- Aquí se mostrarán las salas activas -->
+        </div>
+
+        <p id="error" class="error"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Verificar autenticación y cargar datos del usuario
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('welcomeMessage').textContent = 
+                        `¡Bienvenido/a ${userData.nombre}!`;
+                    document.getElementById('userEmail').textContent = user.email;
+                    loadActiveRooms(user.uid);
+                }
+            } else {
+                window.location.href = '/index.html';
+            }
+        });
+
+        // Función para generar ID único para la sala
+        function generateRoomId() {
+            return Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+        }
+
+        // Crear nueva sala
+        document.getElementById('createRoomBtn').addEventListener('click', async () => {
+            try {
+                const user = auth.currentUser;
+                const roomId = generateRoomId();
+                const expirationDate = new Date();
+                expirationDate.setHours(expirationDate.getHours() + 24);
+
+                // Crear documento de sala
+                await setDoc(doc(db, "salas", roomId), {
+                    creadorId: user.uid,
+                    fechaCreacion: new Date(),
+                    fechaExpiracion: expirationDate,
+                    estado: 'pendiente', // pendiente, activa, cerrada
+                    miembros: [user.uid]
+                });
+
+                // Mostrar enlace de invitación
+                const invitationLink = `${window.location.origin}/test/unirse-sala.html?id=${roomId}`;
+                document.getElementById('invitationLink').textContent = invitationLink;
+                document.getElementById('invitationSection').style.display = 'block';
+
+                loadActiveRooms(user.uid);
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+
+        // Cargar salas activas
+        async function loadActiveRooms(userId) {
+            try {
+                const salasRef = collection(db, "salas");
+                const q = query(salasRef, where("miembros", "array-contains", userId));
+                const querySnapshot = await getDocs(q);
+
+                const activeRoomsDiv = document.getElementById('activeRooms');
+                activeRoomsDiv.innerHTML = '<h3>Tus Salas Activas</h3>';
+
+                querySnapshot.forEach(async (doc) => {
+                    const sala = doc.data();
+                    const otroMiembroId = sala.miembros.find(id => id !== userId);
+                    let nombrePareja = 'Esperando pareja...';
+
+                    if (otroMiembroId) {
+                        const parejaDoc = await getDoc(doc(db, "usuarios", otroMiembroId));
+                        if (parejaDoc.exists()) {
+                            nombrePareja = `${parejaDoc.data().nombre} ${parejaDoc.data().apellido}`;
+                        }
+                    }
+
+                    const roomElement = document.createElement('div');
+                    roomElement.className = 'active-room-card';
+                    roomElement.innerHTML = `
+                        <h4>Sala: ${doc.id.substring(0, 8)}...</h4>
+                        <p>Estado: ${sala.estado}</p>
+                        <p>Pareja: ${nombrePareja}</p>
+                        <p>Creada: ${sala.fechaCreacion.toDate().toLocaleDateString()}</p>
+                    `;
+                    activeRoomsDiv.appendChild(roomElement);
+                });
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        }
+
+        // Función para copiar el enlace de invitación
+        window.copyInvitationLink = function() {
+            const link = document.getElementById('invitationLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Enlace copiado al portapapeles');
+            });
+        }
+
+        // Cerrar sesión
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = '/index.html';
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
