@@ -138,14 +138,16 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
         const storageRef = storage.ref(`paseos/${roomId}/${Date.now()}-${file.name}`);
         const snapshot = await storageRef.put(file);
         const imageUrl = await snapshot.ref.getDownloadURL();
-
+        const selectedDate = new Date(document.getElementById('date').value);
+        // Add one day to compensate for timezone conversion
+        selectedDate.setDate(selectedDate.getDate() + 1);
         // Guardar datos en Firestore usando el nombre del usuario obtenido
         await db.collection('paseos').add({
             id_sala: roomId,
             imageUrl,
             description,
             author: userName, // Usar el nombre del usuario obtenido de la colección usuarios
-            date,
+            date: selectedDate.toISOString().split('T')[0],
             location,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -163,3 +165,14 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
 
 // Inicializar Google Maps cuando la página cargue
 document.addEventListener('DOMContentLoaded', initializeGoogleMaps);
+
+if (roomId) {
+    
+    const notes = document.getElementById("gallery");
+    notes.href = `gallery_photos.html?id_sala=${roomId}`;
+
+
+
+} else {
+    photosGrid.innerHTML = "<p>Invalid room ID.</p>";
+}
