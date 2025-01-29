@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notas</title>
-    <link rel="stylesheet" href="../css/notes.css">
+    <title>Chat</title>
+    <link rel="stylesheet" href="../css/chat.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
 </head>
 
 <body>
@@ -17,25 +17,29 @@
         <div id="notesList" class="notes-list"></div>
     </div>
 
-    <a class="action-button add-button" id="addButton" title="Añadir nota">+</a>
+    <!-- Floating Action Buttons -->
     <a id="worldMap" class="action-button world-button" title="Ver mapa">🌎</a>
     <a id="games" class="action-button games-button" title="Juegos">🎮</a>
     <a id="gallery" class="action-button gallery-button" title="Galería">📷</a>
     <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
-    <a id="logoutButton" class="action-button logout-button" title="Logout">🚪</a>
+    <a id="logoutButton" class="action-button logout-button" title="Cerrar sesión">🚪</a>
 
-    <div class="modal" id="noteModal">
-        <div class="modal-content">
-            <button class="close-button" id="closeModal">&times;</button>
-            <h2 style="margin-bottom: 20px;">Nueva Nota</h2>
-            <form id="noteForm">
-                <div class="form-group">
-                    <label for="message">Mensaje</label>
-                    <textarea id="message" required placeholder="Escribe tu nota aquí..."></textarea>
-                </div>
-                <button type="submit" class="submit-button">Guardar Nota</button>
-            </form>
-        </div>
+    <!-- Chat Input Area -->
+    <div class="chat-input-container">
+        <textarea 
+            id="message" 
+            class="chat-input" 
+            placeholder="Escribe un mensaje..."
+            rows="1"
+            maxlength="1000"
+        ></textarea>
+        <button id="sendButton" class="send-button">
+            <span>Enviar</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        </button>
     </div>
 
     <script type="module">
@@ -57,6 +61,7 @@
 
         // Variable global para almacenar el nombre del usuario
         let userName = '';
+        let userId = '';
 
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
@@ -65,16 +70,13 @@
 
         // Referencias a elementos del DOM
         const notesList = document.getElementById('notesList');
-        const addButton = document.getElementById('addButton');
-        const modal = document.getElementById('noteModal');
-        const closeModal = document.getElementById('closeModal');
-        const noteForm = document.getElementById('noteForm');
         const messageTextarea = document.getElementById('message');
+        const sendButton = document.getElementById('sendButton');
 
         // Verificar si el usuario está autenticado
         auth.onAuthStateChanged(async user => {
             if (user) {
-                //console.log("Usuario autenticado:", user.email);
+                userId = user.uid;
                 try {
                     // Verificar si el usuario está en la sala correcta
                     const salasRef = db.collection("salas");
@@ -100,9 +102,7 @@
                     const userDoc = await db.collection('usuarios').doc(user.uid).get();
                     if (userDoc.exists) {
                         userName = userDoc.data().nombre;
-                        //console.log('Nombre del usuario:', userName);
                     } else {
-                        //console.log('No se encontró el documento del usuario');
                         userName = user.email; // Usar email como respaldo si no se encuentra el nombre
                     }
 
@@ -114,9 +114,15 @@
                     alert('Error verificando acceso a la sala.');
                     window.location.href = 'dashboard.html';
                 }
-            }else {
+            } else {
                 window.location.href = 'index.html';
             }
+        });
+
+        const textarea = document.getElementById('message');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
         });
 
         // Función para cargar las notas
@@ -129,31 +135,25 @@
                 snapshot.forEach(doc => {
                     const note = doc.data();
                     const noteElement = document.createElement('div');
-                    noteElement.className = `note ${note.autor.toLowerCase()}-note`;
+                    noteElement.className = `note ${note.autorId === userId ? 'user-note' : 'other-note'}`;
                     noteElement.innerHTML = `
-                <div class="note-header">
-                    <span class="note-author">${note.autor}</span>
-                    <span class="note-date">${note.fecha}</span>
-                </div>
-                <div class="note-content">${note.mensaje}</div>
-            `;
+                        <div class="note-header">
+                            <span class="note-author">${note.autor}</span>
+                            <span class="note-date">${note.fecha}</span>
+                        </div>
+                        <div class="note-content">${note.mensaje}</div>
+                    `;
                     notesList.appendChild(noteElement);
                 });
+                // Desplazar hacia abajo para ver el último mensaje
+                notesList.scrollTop = notesList.scrollHeight;
             });
         }
 
-        // Event Listeners
-        addButton.addEventListener('click', () => {
-            modal.classList.add('active');
-        });
-
-        closeModal.addEventListener('click', () => {
-            modal.classList.remove('active');
-            noteForm.reset();
-        });
-
-        noteForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Enviar mensaje
+        sendButton.addEventListener('click', async () => {
+            const message = messageTextarea.value.trim();
+            if (message === '') return;
 
             const today = new Date();
             const fecha = today.toLocaleDateString('es-ES', {
@@ -164,26 +164,26 @@
 
             try {
                 await db.collection('notas').add({
-                    mensaje: messageTextarea.value,
-                    autor: userName, // Usar el nombre del usuario
+                    mensaje: message,
+                    autor: userName,
+                    autorId: userId,
                     fecha: fecha,
                     timestamp: today,
-                    roomId: roomId // Guardar el ID de la sala
+                    roomId: roomId
                 });
 
                 messageTextarea.value = '';
-                modal.classList.remove('active');
             } catch (error) {
-                console.error("Error al añadir nota:", error);
-                alert('Error al guardar la nota');
+                console.error("Error al enviar mensaje:", error);
+                alert('Error al enviar el mensaje');
             }
         });
 
-        // Cerrar modal al hacer clic fuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-                noteForm.reset();
+        // Enviar mensaje al presionar Enter
+        messageTextarea.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButton.click();
             }
         });
 
@@ -196,7 +196,6 @@
                 console.error("Error signing out:", error);
             }
         });
-
 
         // Cargar fotos de la sala al cargar la página
         if (roomId) {
@@ -217,9 +216,7 @@
         } else {
             photosGrid.innerHTML = "<p>Invalid room ID.</p>";
         }
-
     </script>
 </body>
-
 
 </html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas</title>
+    <link rel="stylesheet" href="../css/notes.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <div id="notesList" class="notes-list"></div>
+    </div>
+
+    <a class="action-button add-button" id="addButton" title="Añadir nota">+</a>
+    <a id="worldMap" class="action-button world-button" title="Ver mapa">🌎</a>
+    <a id="games" class="action-button games-button" title="Juegos">🎮</a>
+    <a id="gallery" class="action-button gallery-button" title="Galería">📷</a>
+    <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
+    <a id="logoutButton" class="action-button logout-button" title="Logout">🚪</a>
+
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <button class="close-button" id="closeModal">&times;</button>
+            <h2 style="margin-bottom: 20px;">Nueva Nota</h2>
+            <form id="noteForm">
+                <div class="form-group">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" required placeholder="Escribe tu nota aquí..."></textarea>
+                </div>
+                <button type="submit" class="submit-button">Guardar Nota</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Obtener ID de la sala de la URL
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('id_sala');
+
+        // Variable global para almacenar el nombre del usuario
+        let userName = '';
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Referencias a elementos del DOM
+        const notesList = document.getElementById('notesList');
+        const addButton = document.getElementById('addButton');
+        const modal = document.getElementById('noteModal');
+        const closeModal = document.getElementById('closeModal');
+        const noteForm = document.getElementById('noteForm');
+        const messageTextarea = document.getElementById('message');
+
+        // Verificar si el usuario está autenticado
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                //console.log("Usuario autenticado:", user.email);
+                try {
+                    // Verificar si el usuario está en la sala correcta
+                    const salasRef = db.collection("salas");
+                    const salaQuery = await salasRef
+                        .where("miembros", "array-contains", user.uid)
+                        .where("estado", "==", "activa")
+                        .get();
+
+                    if (salaQuery.empty) {
+                        alert('No tienes acceso a esta sala.');
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+
+                    const salaActual = salaQuery.docs[0];
+                    if (salaActual.id !== roomId) {
+                        alert('No tienes acceso a esta sala.');
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+
+                    // Obtener el nombre del usuario desde la colección usuarios
+                    const userDoc = await db.collection('usuarios').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        userName = userDoc.data().nombre;
+                        //console.log('Nombre del usuario:', userName);
+                    } else {
+                        //console.log('No se encontró el documento del usuario');
+                        userName = user.email; // Usar email como respaldo si no se encuentra el nombre
+                    }
+
+                    // Cargar las notas de la sala
+                    loadNotes();
+
+                } catch (error) {
+                    console.error("Error verificando sala:", error);
+                    alert('Error verificando acceso a la sala.');
+                    window.location.href = 'dashboard.html';
+                }
+            }else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Función para cargar las notas
+        function loadNotes() {
+            const q = db.collection('notas')
+                .where("roomId", "==", roomId)
+                .orderBy('timestamp', 'desc');
+            q.onSnapshot(snapshot => {
+                notesList.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const note = doc.data();
+                    const noteElement = document.createElement('div');
+                    noteElement.className = `note ${note.autor.toLowerCase()}-note`;
+                    noteElement.innerHTML = `
+                <div class="note-header">
+                    <span class="note-author">${note.autor}</span>
+                    <span class="note-date">${note.fecha}</span>
+                </div>
+                <div class="note-content">${note.mensaje}</div>
+            `;
+                    notesList.appendChild(noteElement);
+                });
+            });
+        }
+
+        // Event Listeners
+        addButton.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+            noteForm.reset();
+        });
+
+        noteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const today = new Date();
+            const fecha = today.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            try {
+                await db.collection('notas').add({
+                    mensaje: messageTextarea.value,
+                    autor: userName, // Usar el nombre del usuario
+                    fecha: fecha,
+                    timestamp: today,
+                    roomId: roomId // Guardar el ID de la sala
+                });
+
+                messageTextarea.value = '';
+                modal.classList.remove('active');
+            } catch (error) {
+                console.error("Error al añadir nota:", error);
+                alert('Error al guardar la nota');
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                noteForm.reset();
+            }
+        });
+
+        // Cerrar sesión
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = "../index.html"; // Redirigir al login
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+
+        // Cargar fotos de la sala al cargar la página
+        if (roomId) {
+            loadNotes();
+
+            const worldMap = document.getElementById("worldMap");
+            worldMap.href = `worldmap.html?id_sala=${roomId}`;
+
+            const games = document.getElementById("games");
+            games.href = `games.html?id_sala=${roomId}`;
+
+            const notes = document.getElementById("gallery");
+            notes.href = `gallery_photos.html?id_sala=${roomId}`;
+
+            const dates = document.getElementById("dates");
+            dates.href = `dates.html?id_sala=${roomId}`;
+
+        } else {
+            photosGrid.innerHTML = "<p>Invalid room ID.</p>";
+        }
+
+    </script>
+</body>
+
+
+</html>
