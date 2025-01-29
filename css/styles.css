@@ -22,7 +22,7 @@ body {
 
 /* Sección izquierda */
 .left-section {
-    background: linear-gradient(135deg, #006837, #43A047);
+    background: linear-gradient(135deg, #000000, #3533CD);
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -60,7 +60,7 @@ body {
 
 .left-section button:hover {
     background: white;
-    color: #006837;
+    color: #3533CD;
 }
 
 /* Sección derecha */
@@ -75,7 +75,7 @@ body {
 
 .right-section h2 {
     font-size: 28px;
-    color: #006837;
+    color: #3533CD;
     margin-bottom: 10px;
 }
 
@@ -95,14 +95,14 @@ body {
 }
 
 .right-section input:focus {
-    border-color: #006837;
+    border-color: #3533CD;
     outline: none;
 }
 
 .right-section button {
     width: 100%;
     padding: 12px;
-    background: #006837;
+    background: #3533CD;
     color: white;
     border: none;
     border-radius: 8px;
@@ -112,11 +112,12 @@ body {
 }
 
 .right-section button:hover {
-    background: #43A047;
+    background: white;
+    color: #3533CD;
 }
 
 .right-section a {
-    color: #006837;
+    color: #3533CD;
     text-decoration: none;
     font-weight: bold;
     margin-top: 10px;
@@ -141,7 +142,7 @@ body {
 
 #googleSignIn:hover {
     background: white;
-    color: #006837;
+    color: #3533CD;
 }
 
 /* Estilos responsive */
