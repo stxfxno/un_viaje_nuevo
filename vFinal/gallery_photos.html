@@ -242,6 +242,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
 
         // Firebase Config
         const firebaseConfig = {
@@ -258,10 +259,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
+
+
+
 
         // Obtener ID de la sala de la URL
         const params = new URLSearchParams(window.location.search);
         const roomId = params.get('id_sala');
+
+
 
         // Referencia al contenedor de fotos
         const photosGrid = document.getElementById('photosGrid');
@@ -288,74 +295,115 @@
             }
         }
 
-        const songs = [
-            '../music/CRO_BZRP_MS29.mp3',
-            '../music/DAME_LOVE_REMIX.mp3',
-            '../music/TRAPICHEO_KHEA.mp3',
-            // Agrega más canciones automáticamente de tu carpeta
-        ];
+        //--------------------------------------------------------------------------------
 
+        // Array para almacenar las URLs de las canciones
+        let songs = [];
         let currentSongIndex = 0;
         const audio = new Audio();
         audio.volume = 0.5;
 
-        const songTitle = document.getElementById('song-title');
+        // Elementos del DOM
         const prevBtn = document.getElementById('prev-btn');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const nextBtn = document.getElementById('next-btn');
+        const plate = document.querySelector('.plate .black');
 
-        // Actualiza el título y la canción
-        function loadSong(index) {
-            currentSongIndex = index;
-            audio.src = songs[currentSongIndex];
-            audio.play();
+        // Función para cargar todas las canciones del storage
+        async function loadSongsFromStorage() {
+            try {
+                // Crear referencia a la carpeta 'radio' en Storage
+                const radioRef = ref(storage, 'radio');
+
+                // Listar todos los archivos en la carpeta
+                const result = await listAll(radioRef);
+
+                // Obtener las URLs de descarga para cada archivo
+                const urlPromises = result.items.map(item => getDownloadURL(item));
+                songs = await Promise.all(urlPromises);
+
+                // Iniciar con una canción aleatoria
+                if (songs.length > 0) {
+                    currentSongIndex = Math.floor(Math.random() * songs.length);
+                    loadSong(currentSongIndex);
+                }
+            } catch (error) {
+                console.error("Error loading songs from storage:", error);
+            }
         }
 
-        // Cargar la primera canción al azar
-        loadSong(Math.floor(Math.random() * songs.length));
+        // Función para cargar y reproducir una canción
+        function loadSong(index) {
+            if (songs.length === 0) return;
 
-        // Botón de anterior
+            currentSongIndex = index;
+            audio.src = songs[currentSongIndex];
+
+            // Intentar reproducir la canción
+            audio.play().catch(error => {
+                console.error("Error playing song:", error);
+            });
+
+            // Actualizar estado visual
+            playPauseBtn.textContent = '⏸';
+            plate.classList.remove('paused');
+        }
+
+        // Función para reproducir la siguiente canción aleatoria
+        function playRandomSong() {
+            if (songs.length <= 1) return;
+
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * songs.length);
+            } while (newIndex === currentSongIndex);
+
+            loadSong(newIndex);
+        }
+
+        // Manejar play/pausa
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.textContent = '⏸';
+                plate.classList.remove('paused');
+            } else {
+                audio.pause();
+                playPauseBtn.textContent = '▶';
+                plate.classList.add('paused');
+            }
+        }
+
+        // Event Listeners
         prevBtn.addEventListener('click', () => {
             currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
             loadSong(currentSongIndex);
         });
 
-
-        // Botón de siguiente
         nextBtn.addEventListener('click', () => {
             currentSongIndex = (currentSongIndex + 1) % songs.length;
             loadSong(currentSongIndex);
         });
 
-        // Reproducir otra canción al terminar
-        audio.addEventListener('ended', () => {
-            nextBtn.click();
-        });
-
-
-        // Selecciona el elemento del tocadiscos que gira
-        const plate = document.querySelector('.plate .black');
-
-        // Función para manejar play/pausa
-        function togglePlayPause() {
-            if (audio.paused) {
-                audio.play();
-                playPauseBtn.textContent = '⏸'; // Actualiza el texto del botón
-                plate.classList.remove('paused'); // Quita la pausa del tocadiscos
-            } else {
-                audio.pause();
-                playPauseBtn.textContent = '▶'; // Actualiza el texto del botón
-                plate.classList.add('paused'); // Pausa el tocadiscos
-            }
-        }
-
-        // Botón de pausa/reanudar
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        // También sincroniza el estado cuando haces clic en el tocadiscos
+        // Reproducir siguiente canción cuando termine la actual
+        audio.addEventListener('ended', () => {
+            playRandomSong();
+        });
+
+        // Click en el tocadiscos
         const turntable = document.querySelector('.turntable');
         turntable.addEventListener('click', togglePlayPause);
 
+        // Manejar errores de reproducción
+        audio.addEventListener('error', (e) => {
+            console.error("Error playing audio:", e);
+            playRandomSong(); // Intentar con otra canción si hay error
+        });
+
+        // Iniciar la carga de canciones cuando se monte el componente
+        document.addEventListener('DOMContentLoaded', loadSongsFromStorage);
 
 
 
@@ -363,6 +411,8 @@
 
 
 
+
+        //--------------------------------------------------------------------------------
 
         // Función para mostrar una foto en la galería
         function displayPhoto(photoData) {

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Photos</title>
+    <link rel="stylesheet" href="../css/gallery_photos.css">
+    <script type="module" src="gallery_photos.js" defer></script>
+    <style>
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Turntable styles */
+        .turntable-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .turntable {
+            width: 175px;
+            height: 175px;
+            background-color: #ABC4AA;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 5px 5px 0 0 #675D50;
+        }
+
+        .plate {
+            width: fit-content;
+        }
+
+        .plate .black,
+        .plate .white,
+        .plate .center,
+        .plate .border {
+            border-radius: 100%;
+        }
+
+        .turntable,
+        .plate .black,
+        .plate .white,
+        .plate .border {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plate .black {
+            width: 150px;
+            height: 150px;
+            background-color: #675D50;
+            animation: rotation 2s infinite linear;
+        }
+
+        .plate .black.paused {
+            animation-play-state: paused;
+        }
+
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(359deg);
+            }
+        }
+
+        .plate .white {
+            width: 70px;
+            height: 70px;
+            background-color: #F3DEBA;
+        }
+
+        .plate .center {
+            width: 20px;
+            height: 20px;
+            background-color: #675D50;
+        }
+
+        .plate .border {
+            width: 111px;
+            height: 111px;
+            border-top: 3px solid #F3DEBA;
+            border-bottom: 3px solid #F3DEBA;
+            border-left: 3px solid #675D50;
+            border-right: 3px solid #675D50;
+        }
+
+        .player {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: fit-content;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            margin-bottom: 8px;
+            margin-right: 8px;
+            rotate: -45deg;
+        }
+
+        .player .circ {
+            width: 25px;
+            height: 25px;
+            background-color: #F3DEBA;
+            border-radius: 100%;
+            z-index: 1;
+        }
+
+        .player .rect {
+            width: 10px;
+            height: 55px;
+            background-color: #F3DEBA;
+            position: absolute;
+            bottom: 0;
+            margin-bottom: 5px;
+        }
+
+
+        #music-controls {
+            width: 175px;
+            background-color: #ABC4AA;
+            /* Color del tocadiscos */
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 5px 5px 0 0 #675D50;
+
+            position: fixed;
+            top: -10px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #music-controls h2 {
+            font-size: 1em;
+            color: #675D50;
+            /* Mismo tono que el centro del tocadiscos */
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #music-controls button {
+            background-color: #675D50;
+            /* Mismo color que el borde del tocadiscos */
+            color: #F3DEBA;
+            /* Mismo color que el interior del tocadiscos */
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #music-controls button:hover {
+            background-color: #F3DEBA;
+            /* Intercambio de colores para hover */
+            color: #675D50;
+        }
+
+        #music-controls button:active {
+            transform: scale(0.95);
+        }
+
+        .plate .black.paused {
+            animation-play-state: paused;
+        }
+
+
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Add turntable at the top -->
+    <div class="turntable-container">
+        <div class="turntable">
+            <div class="plate">
+                <div class="black">
+                    <div class="border">
+                        <div class="white">
+                            <div class="center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="player">
+                <div class="rect"></div>
+                <div class="circ"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menú de controles -->
+    <div id="music-controls" style="text-align: center; margin-top: 220px;">
+
+        <button id="prev-btn">⏮</button>
+        <button id="play-pause-btn">⏸</button>
+        <button id="next-btn">⏭</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Nuestras Fotos de Viaje</h1>
+        </header>
+        <main>
+            <div id="photosGrid" class="gallery"></div>
+        </main>
+        <!-- El enlace ahora tiene un id para poder modificarlo dinámicamente -->
+        <a id="uploadLink" class="action-button add-button" title="Añadir foto">+</a>
+        <a id="worldMap" class="action-button world-button" title="Ver mapa">🌎</a>
+        <a id="games" class="action-button games-button" title="Juegos">🎮</a>
+        <a id="notes" class="action-button notes-button" title="Notas">📝</a>
+        <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
+        <a id="logoutButton" class="action-button logout-button" title="Logout">🚪</a>
+        <footer>
+            <p>Powered by Stef-Ware</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
+            authDomain: "un-viaje-nuevo.firebaseapp.com",
+            projectId: "un-viaje-nuevo",
+            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            messagingSenderId: "872379280680",
+            appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
+            measurementId: "G-J021Q5QKX6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        
+
+
+        // Obtener ID de la sala de la URL
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('id_sala');
+
+        
+
+        // Referencia al contenedor de fotos
+        const photosGrid = document.getElementById('photosGrid');
+
+        // Función para cargar fotos de la sala
+        async function loadPhotosByRoom(roomId) {
+            try {
+                const photosRef = collection(db, "paseos");
+                const q = query(photosRef, where("id_sala", "==", roomId));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    photosGrid.innerHTML = "<p>No photos available for this room.</p>";
+                    return;
+                }
+
+                querySnapshot.forEach(doc => {
+                    const photoData = doc.data();
+                    displayPhoto(photoData);
+                });
+            } catch (error) {
+                console.error("Error loading photos:", error);
+                photosGrid.innerHTML = "<p>Error loading photos. Please try again later.</p>";
+            }
+        }
+            
+        const songs = [
+            '../music/CRO_BZRP_MS29.mp3',
+            '../music/DAME_LOVE_REMIX.mp3',
+            '../music/TRAPICHEO_KHEA.mp3',
+            // Agrega más canciones automáticamente de tu carpeta
+        ];
+
+        let currentSongIndex = 0;
+        const audio = new Audio();
+        audio.volume = 0.5;
+
+        const songTitle = document.getElementById('song-title');
+        const prevBtn = document.getElementById('prev-btn');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Actualiza el título y la canción
+        function loadSong(index) {
+            currentSongIndex = index;
+            audio.src = songs[currentSongIndex];
+            audio.play();
+        }
+
+        // Cargar la primera canción al azar
+        loadSong(Math.floor(Math.random() * songs.length));
+
+        // Botón de anterior
+        prevBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong(currentSongIndex);
+        });
+
+
+        // Botón de siguiente
+        nextBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            loadSong(currentSongIndex);
+        });
+
+        // Reproducir otra canción al terminar
+        audio.addEventListener('ended', () => {
+            nextBtn.click();
+        });
+
+
+        // Selecciona el elemento del tocadiscos que gira
+        const plate = document.querySelector('.plate .black');
+
+        // Función para manejar play/pausa
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.textContent = '⏸'; // Actualiza el texto del botón
+                plate.classList.remove('paused'); // Quita la pausa del tocadiscos
+            } else {
+                audio.pause();
+                playPauseBtn.textContent = '▶'; // Actualiza el texto del botón
+                plate.classList.add('paused'); // Pausa el tocadiscos
+            }
+        }
+
+        // Botón de pausa/reanudar
+        playPauseBtn.addEventListener('click', togglePlayPause);
+
+        // También sincroniza el estado cuando haces clic en el tocadiscos
+        const turntable = document.querySelector('.turntable');
+        turntable.addEventListener('click', togglePlayPause);
+
+
+
+
+
+
+
+
+
+        // Función para mostrar una foto en la galería
+        function displayPhoto(photoData) {
+            const photoCard = document.createElement('div');
+            photoCard.className = "card";
+            const formattedDate = formatDate(photoData.date);
+
+            photoCard.innerHTML =
+                `<img src="${photoData.imageUrl}" alt="Foto del viaje" class="card-image">
+                <div class="card-content">
+                    <div class="card-author">Subido por: ${photoData.author}</div>
+                    <div class="card-date">${formattedDate}</div>
+                    <div class="card-description">${photoData.description}</div>
+
+                    <div class="location-text"> ${photoData.location.formattedAddress}</div>
+                </div>`
+                ;
+
+            photosGrid.appendChild(photoCard);
+        }
+
+        // Función para formatear la fecha al estilo deseado
+        function formatDate(dateString) {
+            const date = new Date(dateString); // Convertir la fecha a un objeto Date
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return new Intl.DateTimeFormat('es-ES', options).format(date);
+        }
+
+        // Cerrar sesión
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = "../index.html"; // Redirigir al login
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+
+        // Cargar fotos de la sala al cargar la página
+        if (roomId) {
+            loadPhotosByRoom(roomId);
+
+            // Actualizar el enlace dinámicamente con roomId
+            const uploadLink = document.getElementById("uploadLink");
+            uploadLink.href = `upload_photos.html?id_sala=${roomId}`;
+
+            const worldMap = document.getElementById("worldMap");
+            worldMap.href = `worldmap.html?id_sala=${roomId}`;
+
+            const games = document.getElementById("games");
+            games.href = `games.html?id_sala=${roomId}`;
+
+            const notes = document.getElementById("notes");
+            notes.href = `notes.html?id_sala=${roomId}`;
+
+            const dates = document.getElementById("dates");
+            dates.href = `dates.html?id_sala=${roomId}`;
+
+        } else {
+            photosGrid.innerHTML = "<p>Invalid room ID.</p>";
+        }
+
+
+
+    </script>
+</body>
+
+</html>
