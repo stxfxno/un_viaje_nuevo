@@ -358,6 +358,12 @@
             border: 1px solid var(--primary);
             box-shadow: 0 10px 30px rgba(53, 51, 205, 0.3);
             animation: slideIn 0.3s ease-out;
+
+            /* Hacer que el contenido del popup sea scrollable */
+            max-height: 80vh;
+            /* Limitar la altura al 80% de la pantalla */
+            overflow-y: auto;
+            /* Activar scroll vertical si es necesario */
         }
 
         .popup-header {
@@ -471,6 +477,8 @@
                 width: 80%;
                 margin: 20px auto;
                 padding: 1.5rem;
+                max-height: 90vh;
+                /* Ajustar en móviles */
             }
 
             .popup-header h2 {
