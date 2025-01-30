@@ -468,13 +468,9 @@
         /* Media queries para el popup */
         @media (max-width: 768px) {
             .popup-content {
-                width: 80%;
+                width: 95%;
                 margin: 20px auto;
                 padding: 1.5rem;
-            }
-
-            .popup-header h2 {
-                font-size: 1.5rem;
             }
 
             .step {
@@ -484,15 +480,15 @@
             .step-number {
                 width: 25px;
                 height: 25px;
-                font-size: 0.8rem;
+                font-size: 0.9rem;
             }
 
             .step-content h3 {
-                font-size: 0.85rem;
+                font-size: 1rem;
             }
 
             .step-content p {
-                font-size: 0.8rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -504,6 +500,7 @@
 
         <div class="instructions-popup" id="instructionsPopup">
             <div class="popup-content">
+                <button class="close-popup" onclick="window.closePopup()">×</button>
 
                 <div class="popup-header">
                     <h2>¿Cómo funciona Una Distancia Corta?</h2>
@@ -545,7 +542,7 @@
                     </div>
                 </div>
 
-                <button class="got-it-btn" onclick="closePopup()">¡Entendido!</button>
+                <button class="got-it-btn" onclick="window.closePopup()">¡Entendido!</button>
             </div>
         </div>
 
@@ -593,8 +590,13 @@
 
     <script type="module">
 
+        function showPopup() {
+            document.getElementById('instructionsPopup').style.display = 'block';
+        }
 
-
+        function closePopup() {
+            document.getElementById('instructionsPopup').style.display = 'none';
+        }
 
         // Mostrar el popup automáticamente al cargar la página
         window.addEventListener('load', () => {
@@ -618,15 +620,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        function showPopup() {
-            document.getElementById('instructionsPopup').style.display = 'block';
-        }
-
-        window.closePopup = function () {
-            document.getElementById('instructionsPopup').style.display = 'none';
-        };
-
 
         // Función para verificar sala activa
         async function checkExistingActiveRoom(userId) {
@@ -701,7 +694,6 @@
 
 
 
-
         document.getElementById('createRoomBtn').addEventListener('click', async () => {
             try {
                 const user = auth.currentUser;
@@ -724,8 +716,6 @@
                 document.getElementById('error').textContent = error.message;
             }
         });
-
-
 
         // Modificar el evento de unirse a sala
         document.getElementById('joinRoomBtn').addEventListener('click', async () => {
