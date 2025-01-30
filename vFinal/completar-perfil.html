@@ -1,50 +1,149 @@
 <!-- completar-perfil.html -->
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
-    <title>Completar Perfil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completar Perfil | Una Distancia Corta</title>
     <style>
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4285f4;
+        /* Estilos globales */
+        /* Estilos globales */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #03011a, #3533CD);
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
         }
+
+        /* Contenedor principal */
+        .container {
+            width: 90%;
+            max-width: 420px;
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Títulos y texto */
+        h2 {
+            color: #3533CD;
+            font-size: 26px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        p {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        /* Estilos de los inputs */
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #222;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease-in-out;
+            background: #f8f8f8;
+            color: #222;
+        }
+
+        input:focus {
+            border-color: #3533CD;
+            box-shadow: 0px 0px 8px rgba(53, 51, 205, 0.3);
+            outline: none;
+        }
+
+        /* Botón */
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #3533CD;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background: white;
+            color: #3533CD;
+            border: 2px solid #3533CD;
+        }
+
+        /* Mensaje de error */
         .error {
-            color: red;
-            margin-top: 10px;
+            color: #D93025;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        /* Estilos responsivos */
+        @media screen and (max-width: 480px) {
+            .container {
+                width: 75%;
+                padding: 25px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            p {
+                font-size: 14px;
+            }
+
+            input,
+            button {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Completar Perfil</h2>
         <p>Por favor, completa tus datos para continuar</p>
-        
+
         <form id="completarPerfilForm">
             <div class="form-group">
                 <label>Nombre:</label>
@@ -95,7 +194,7 @@
         document.getElementById('completarPerfilForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = auth.currentUser;
-            
+
             if (!user) {
                 document.getElementById('error').textContent = "No hay usuario autenticado";
                 return;
@@ -122,4 +221,5 @@
         });
     </script>
 </body>
+
 </html>
