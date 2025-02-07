@@ -191,7 +191,7 @@
 </head>
 
 <body>
-    
+
     <!-- Add turntable at the top -->
     <div class="turntable-container">
         <div class="turntable">
@@ -274,7 +274,7 @@
         // Referencia al contenedor de fotos
         const photosGrid = document.getElementById('photosGrid');
 
-        // Función para cargar fotos de la sala
+        // Función para cargar fotos de la sala y ordenarlas por fecha (más recientes primero)
         async function loadPhotosByRoom(roomId) {
             try {
                 const photosRef = collection(db, "paseos");
@@ -286,15 +286,28 @@
                     return;
                 }
 
+                let photosArray = [];
+
                 querySnapshot.forEach(doc => {
                     const photoData = doc.data();
-                    displayPhoto(photoData);
+                    photosArray.push(photoData);
                 });
+
+                // Ordenar las fotos por fecha (de la más reciente a la más antigua)
+                photosArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                // Limpiar la galería antes de agregar las fotos ordenadas
+                photosGrid.innerHTML = "";
+
+                // Mostrar las fotos ordenadas
+                photosArray.forEach(photo => displayPhoto(photo));
+
             } catch (error) {
                 console.error("Error loading photos:", error);
                 photosGrid.innerHTML = "<p>Error loading photos. Please try again later.</p>";
             }
         }
+
 
         //--------------------------------------------------------------------------------
 
