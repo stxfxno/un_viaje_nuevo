@@ -199,7 +199,12 @@ h1 {
   }
 
   .logout-button {
-      bottom: 370px;
+      bottom: 440px;
       right: 20px;
   }
+
+  .distance-button {
+    bottom: 370px;
+    right: 20px;
+}
 }
