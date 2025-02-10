@@ -187,6 +187,14 @@
             font-size: 12px;
             color: #666;
         }
+
+        @media (max-width: 768px) {
+
+            .turntable-container,
+            #music-controls {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -317,6 +325,8 @@
         const audio = new Audio();
         audio.volume = 0.5;
 
+
+
         // Elementos del DOM
         const prevBtn = document.getElementById('prev-btn');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -417,7 +427,11 @@
         });
 
         // Iniciar la carga de canciones cuando se monte el componente
-        document.addEventListener('DOMContentLoaded', loadSongsFromStorage);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth > 768) {
+                loadSongsFromStorage();
+            }
+        });
 
 
 
