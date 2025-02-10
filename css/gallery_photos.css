@@ -155,10 +155,16 @@ h1 {
   background-color: #f39c12;
 }
 
-.logout-button {
+.distance-button{
   bottom: 380px;
   right: 30px;
-  background-color: #34495e;
+  background-color: #0c4d8d;
+}
+
+.logout-button {
+  bottom: 450px;
+  right: 30px;
+  background-color: #0967c5;
 }
 
 @media (max-width: 768px) {

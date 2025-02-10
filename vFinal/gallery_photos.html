@@ -19,7 +19,7 @@
         .turntable-container {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             z-index: 1000;
             cursor: pointer;
         }
@@ -103,7 +103,7 @@
             width: fit-content;
             position: absolute;
             bottom: 0;
-            right: 0;
+            left: 150px;
             margin-bottom: 8px;
             margin-right: 8px;
             rotate: -45deg;
@@ -137,7 +137,7 @@
 
             position: fixed;
             top: -10px;
-            right: 20px;
+            left: 20px;
             z-index: 1000;
             cursor: pointer;
         }
@@ -178,8 +178,6 @@
         .plate .black.paused {
             animation-play-state: paused;
         }
-
-
 
         footer {
             margin-top: 20px;
@@ -240,6 +238,7 @@
         <a id="games" class="action-button games-button" title="Juegos">🎮</a>
         <a id="notes" class="action-button notes-button" title="Notas">📝</a>
         <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
+        <a id="distance" class="action-button distance-button" title="Distancia">📏</a>
         <a id="logoutButton" class="action-button logout-button" title="Logout">🚪</a>
         <footer>
             <p>Powered by Stef-Ware</p>
@@ -498,6 +497,9 @@
 
             const dates = document.getElementById("dates");
             dates.href = `dates.html?id_sala=${roomId}`;
+
+            const distance = document.getElementById("distance");
+            distance.href = `distance.html?id_sala=${roomId}`;
 
         } else {
             photosGrid.innerHTML = "<p>Invalid room ID.</p>";
