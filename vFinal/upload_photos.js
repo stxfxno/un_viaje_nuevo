@@ -126,6 +126,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
     const file = document.getElementById('image').files[0];
     const description = document.getElementById('description').value;
     const date = document.getElementById('date').value;
+    const inSpain = document.getElementById('inSpain').checked;
     const location = {
         latitude: parseFloat(document.getElementById('latitude').value),
         longitude: parseFloat(document.getElementById('longitude').value),
@@ -139,8 +140,16 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
         const snapshot = await storageRef.put(file);
         const imageUrl = await snapshot.ref.getDownloadURL();
         const selectedDate = new Date(document.getElementById('date').value);
-        // Add one day to compensate for timezone conversion
-        selectedDate.setDate(selectedDate.getDate() + 1);
+        
+        // Ajustar fecha según la opción seleccionada
+        if (inSpain) {
+            // Si está en España, restar un día
+            selectedDate.setDate(selectedDate.getDate());
+        } else {
+            // Si no está en España, añadir un día por la conversión de timezone (comportamiento original)
+            selectedDate.setDate(selectedDate.getDate() + 1);
+        }
+        
         // Guardar datos en Firestore usando el nombre del usuario obtenido
         await db.collection('paseos').add({
             id_sala: roomId,
@@ -167,12 +176,8 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
 document.addEventListener('DOMContentLoaded', initializeGoogleMaps);
 
 if (roomId) {
-    
     const notes = document.getElementById("gallery");
     notes.href = `gallery_photos.html?id_sala=${roomId}`;
-
-
-
 } else {
     photosGrid.innerHTML = "<p>Invalid room ID.</p>";
 }
