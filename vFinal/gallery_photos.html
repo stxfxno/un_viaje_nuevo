@@ -1,247 +1,180 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery Photos</title>
+    <meta name="description" content="Galería de fotos de nuestro viaje por España">
+    <meta name="theme-color" content="#A4B5C4">
+    <title>Galería de Fotos | Mi Viaje por España</title>
     <link rel="stylesheet" href="../css/gallery_photos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="module" src="gallery_photos.js" defer></script>
-    <style>
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            font-family: Arial, sans-serif;
-        }
-
-        /* Turntable styles */
-        .turntable-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        .turntable {
-            width: 175px;
-            height: 175px;
-            background-color: #A4B5C4;
-            border-radius: 10px;
-            position: relative;
-            box-shadow: 5px 5px 0 0 black;
-        }
-
-        .plate {
-            width: fit-content;
-        }
-
-        .plate .black,
-        .plate .white,
-        .plate .center,
-        .plate .border {
-            border-radius: 100%;
-        }
-
-        .turntable,
-        .plate .black,
-        .plate .white,
-        .plate .border {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .plate .black {
-            width: 150px;
-            height: 150px;
-            background-color: black;
-            animation: rotation 2s infinite linear;
-        }
-
-        .plate .black.paused {
-            animation-play-state: paused;
-        }
-
-        @keyframes rotation {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(359deg);
-            }
-        }
-
-        .plate .white {
-            width: 70px;
-            height: 70px;
-            background-color: #E6D8B6;
-        }
-
-        .plate .center {
-            width: 20px;
-            height: 20px;
-            background-color: black;
-        }
-
-        .plate .border {
-            width: 111px;
-            height: 111px;
-            border-top: 3px solid #F3DEBA;
-            border-bottom: 3px solid #F3DEBA;
-            border-left: 3px solid black;
-            border-right: 3px solid black;
-        }
-
-        .player {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            width: fit-content;
-            position: absolute;
-            bottom: 0;
-            left: 150px;
-            margin-bottom: 8px;
-            margin-right: 8px;
-            rotate: -45deg;
-        }
-
-        .player .circ {
-            width: 25px;
-            height: 25px;
-            background-color: rgb(0, 0, 0);
-            border-radius: 100%;
-            z-index: 1;
-        }
-
-        .player .rect {
-            width: 10px;
-            height: 55px;
-            background-color: #595959;
-            position: absolute;
-            bottom: 0;
-            margin-bottom: 5px;
-        }
-
-
-        #music-controls {
-            width: 175px;
-            background-color: #A4B5C4;
-            /* Color del tocadiscos */
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 5px 5px 0 0 black;
-
-            position: fixed;
-            top: -10px;
-            left: 20px;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        #music-controls h2 {
-            font-size: 1em;
-            color: #675D50;
-            /* Mismo tono que el centro del tocadiscos */
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        #music-controls button {
-            background-color: black;
-            /* Mismo color que el borde del tocadiscos */
-            color: #F3DEBA;
-            /* Mismo color que el interior del tocadiscos */
-            border: none;
-            border-radius: 5px;
-            margin: 5px;
-            padding: 5px 10px;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.3s ease;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        #music-controls button:hover {
-            background-color: #F3DEBA;
-            /* Intercambio de colores para hover */
-            color: #675D50;
-        }
-
-        #music-controls button:active {
-            transform: scale(0.95);
-        }
-
-        .plate .black.paused {
-            animation-play-state: paused;
-        }
-
-        footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-
-            .turntable-container,
-            #music-controls {
-                display: none !important;
-            }
-        }
-    </style>
 </head>
 
 <body>
-
-    <!-- Add turntable at the top -->
-    <div class="turntable-container">
-        <div class="turntable">
-            <div class="plate">
-                <div class="black">
-                    <div class="border">
-                        <div class="white">
-                            <div class="center"></div>
+    <!-- Tocadiscos y Controles de Música - DESACTIVADO TEMPORALMENTE -->
+    <div class="music-player" style="display: none;">
+        <div class="turntable-container">
+            <div class="turntable">
+                <div class="plate">
+                    <div class="black">
+                        <div class="border">
+                            <div class="white">
+                                <div class="center"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="player">
+                    <div class="rect"></div>
+                    <div class="circ"></div>
+                </div>
             </div>
-            <div class="player">
-                <div class="rect"></div>
-                <div class="circ"></div>
+        </div>
+
+        <div id="music-controls">
+            <div class="song-info">
+                <div class="currently-playing">
+                    <i class="fas fa-music"></i>
+                    <span id="current-song">Cargando música...</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="song-progress"></div>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button id="prev-btn" aria-label="Canción anterior">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button id="play-pause-btn" aria-label="Reproducir o pausar">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button id="next-btn" aria-label="Siguiente canción">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <div class="volume-control">
+                    <i class="fas fa-volume-up"></i>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50">
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Menú de controles -->
-    <div id="music-controls" style="text-align: center; margin-top: 220px;">
-
-        <button id="prev-btn">⏮</button>
-        <button id="play-pause-btn">⏸</button>
-        <button id="next-btn">⏭</button>
-    </div>
-
-    <div class="container">
-        <header>
-            <h1>Nuestras Fotos de Viaje</h1>
+    <!-- Contenido Principal -->
+    <div class="page-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1>Nuestras Fotos de Viaje</h1>
+                <div class="view-options">
+                    <button id="grid-view" class="view-button active" aria-label="Vista de cuadrícula">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button id="list-view" class="view-button" aria-label="Vista de lista">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
         </header>
-        <main>
-            <div id="photosGrid" class="gallery"></div>
+
+        <main class="main-content">
+            <div class="gallery-container">
+                <div class="filters">
+                    <div class="search-container">
+                        <input type="text" id="searchPhotos" placeholder="Buscar fotos..." aria-label="Buscar fotos">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="filter-options">
+                        <select id="filterBy" aria-label="Filtrar por">
+                            <option value="date-desc">Más recientes primero</option>
+                            <option value="date-asc">Más antiguas primero</option>
+                            <option value="author">Por autor</option>
+                            <option value="location">Por ubicación</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="photosGrid" class="gallery grid-view">
+                    <!-- Las fotos se cargarán dinámicamente aquí -->
+                    <div class="loading-photos">
+                        <div class="spinner"></div>
+                        <p>Cargando fotos...</p>
+                    </div>
+                </div>
+            </div>
         </main>
-        <!-- El enlace ahora tiene un id para poder modificarlo dinámicamente -->
-        <a id="uploadLink" class="action-button add-button" title="Añadir foto">+</a>
-        <a id="worldMap" class="action-button world-button" title="Ver mapa">🌎</a>
-        <a id="games" class="action-button games-button" title="Juegos">🎮</a>
-        <a id="notes" class="action-button notes-button" title="Notas">📝</a>
-        <a id="dates" class="action-button dates-button" title="Fechas">📅</a>
-        <a id="distance" class="action-button distance-button" title="Distancia">📏</a>
-        <a id="logoutButton" class="action-button logout-button" title="Logout">🚪</a>
-        <footer>
-            <p>Powered by Stef-Ware</p>
+
+        <!-- Botones de Acción Flotantes -->
+        <div class="action-buttons">
+            <a id="uploadLink" class="action-button add-button" title="Añadir foto" aria-label="Subir nueva foto">
+                <i class="fas fa-plus"></i>
+            </a>
+            
+            <div class="action-menu">
+                <button id="menuToggle" class="action-button menu-button" aria-label="Mostrar menú">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+                
+                <div class="menu-items">
+                    <a id="worldMap" class="menu-item" title="Ver mapa" aria-label="Ver mapa mundial">
+                        <i class="fas fa-globe-americas"></i>
+                        <span>Mapa</span>
+                    </a>
+                    <a id="games" class="menu-item" title="Juegos" aria-label="Juegos">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Juegos</span>
+                    </a>
+                    <a id="notes" class="menu-item" title="Notas" aria-label="Notas">
+                        <i class="fas fa-sticky-note"></i>
+                        <span>Notas</span>
+                    </a>
+                    <a id="dates" class="menu-item" title="Fechas" aria-label="Fechas">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Fechas</span>
+                    </a>
+                    <a id="distance" class="menu-item" title="Distancia" aria-label="Calcular distancia">
+                        <i class="fas fa-route"></i>
+                        <span>Distancia</span>
+                    </a>
+                </div>
+            </div>
+            
+            <a id="logoutButton" class="action-button logout-button" title="Cerrar sesión" aria-label="Cerrar sesión">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+
+        <!-- Modal para ver fotos en detalle -->
+        <div id="photoModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="modal-image-container">
+                    <img id="modalImage" src="" alt="Foto ampliada">
+                    <button class="nav-btn prev-btn" aria-label="Foto anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="nav-btn next-btn" aria-label="Siguiente foto">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="modal-details">
+                    <h3 id="modalAuthor"></h3>
+                    <div class="modal-date" id="modalDate"></div>
+                    <p id="modalDescription"></p>
+                    <div class="modal-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="modalLocation"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <div class="footer-content">
+                <p>© 2025 Mi Viaje por España</p>
+                <p class="powered-by">Powered by Stef-Ware</p>
+            </div>
         </footer>
     </div>
 
@@ -257,7 +190,7 @@
             apiKey: "AIzaSyCek7bTb6WlbJw5Xjmvsk4hSvWAQ_g7yPs",
             authDomain: "un-viaje-nuevo.firebaseapp.com",
             projectId: "un-viaje-nuevo",
-            storageBucket: "un-viaje-nuevo.firebasestorage.app",
+            storageBucket: "un-viaje-nuevo.appspot.com", // Corregido el nombre del bucket
             messagingSenderId: "872379280680",
             appId: "1:872379280680:web:c7b09f71760bfe44dcf41d",
             measurementId: "G-J021Q5QKX6"
@@ -269,244 +202,471 @@
         const auth = getAuth(app);
         const storage = getStorage(app);
 
+        // Elementos DOM
+        const photosGrid = document.getElementById('photosGrid');
+        const searchInput = document.getElementById('searchPhotos');
+        const filterSelect = document.getElementById('filterBy');
+        const gridViewBtn = document.getElementById('grid-view');
+        const listViewBtn = document.getElementById('list-view');
+        const menuToggle = document.getElementById('menuToggle');
+        const menuItems = document.querySelector('.menu-items');
+        const modal = document.getElementById('photoModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalAuthor = document.getElementById('modalAuthor');
+        const modalDate = document.getElementById('modalDate');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalLocation = document.getElementById('modalLocation');
+        const closeModal = document.querySelector('.close-modal');
+        const prevBtn = document.querySelector('.modal .prev-btn');
+        const nextBtn = document.querySelector('.modal .next-btn');
 
-
+        // Variables globales
+        let allPhotos = [];
+        let filteredPhotos = [];
+        let currentPhotoIndex = 0;
 
         // Obtener ID de la sala de la URL
         const params = new URLSearchParams(window.location.search);
         const roomId = params.get('id_sala');
 
-
-
-        // Referencia al contenedor de fotos
-        const photosGrid = document.getElementById('photosGrid');
-
-        // Función para cargar fotos de la sala y ordenarlas por fecha (más recientes primero)
+        // Función para cargar fotos de la sala
         async function loadPhotosByRoom(roomId) {
             try {
+                photosGrid.innerHTML = `
+                    <div class="loading-photos">
+                        <div class="spinner"></div>
+                        <p>Cargando fotos...</p>
+                    </div>`;
+
                 const photosRef = collection(db, "paseos");
                 const q = query(photosRef, where("id_sala", "==", roomId));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    photosGrid.innerHTML = "<p>No photos available for this room.</p>";
+                    photosGrid.innerHTML = `
+                        <div class="no-photos">
+                            <i class="fas fa-images"></i>
+                            <p>Aún no hay fotos en esta galería</p>
+                            <a href="upload_photos.html?id_sala=${roomId}" class="upload-first-btn">
+                                Sube la primera foto
+                            </a>
+                        </div>`;
                     return;
                 }
 
-                let photosArray = [];
-
+                allPhotos = [];
                 querySnapshot.forEach(doc => {
                     const photoData = doc.data();
-                    photosArray.push(photoData);
+                    photoData.id = doc.id; // Guardar el ID del documento
+                    allPhotos.push(photoData);
                 });
 
-                // Ordenar las fotos por fecha (de la más reciente a la más antigua)
-                photosArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                // Limpiar la galería antes de agregar las fotos ordenadas
-                photosGrid.innerHTML = "";
-
-                // Mostrar las fotos ordenadas
-                photosArray.forEach(photo => displayPhoto(photo));
-
+                applyFiltersAndDisplay();
             } catch (error) {
                 console.error("Error loading photos:", error);
-                photosGrid.innerHTML = "<p>Error loading photos. Please try again later.</p>";
+                photosGrid.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al cargar las fotos. Por favor, intenta de nuevo.</p>
+                        <button onclick="location.reload()" class="retry-btn">Reintentar</button>
+                    </div>`;
             }
         }
 
+        // Función para aplicar filtros y mostrar fotos
+        function applyFiltersAndDisplay() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filterValue = filterSelect.value;
 
-        //--------------------------------------------------------------------------------
-
-        // Array para almacenar las URLs de las canciones
-        let songs = [];
-        let currentSongIndex = 0;
-        const audio = new Audio();
-        audio.volume = 0.5;
-
-
-
-        // Elementos del DOM
-        const prevBtn = document.getElementById('prev-btn');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const plate = document.querySelector('.plate .black');
-
-        // Función para cargar todas las canciones del storage
-        async function loadSongsFromStorage() {
-            try {
-                // Crear referencia a la carpeta 'radio' en Storage
-                const radioRef = ref(storage, 'radio');
-
-                // Listar todos los archivos en la carpeta
-                const result = await listAll(radioRef);
-
-                // Obtener las URLs de descarga para cada archivo
-                const urlPromises = result.items.map(item => getDownloadURL(item));
-                songs = await Promise.all(urlPromises);
-
-                // Iniciar con una canción aleatoria
-                if (songs.length > 0) {
-                    currentSongIndex = Math.floor(Math.random() * songs.length);
-                    loadSong(currentSongIndex);
-                }
-            } catch (error) {
-                console.error("Error loading songs from storage:", error);
-            }
-        }
-
-        // Función para cargar y reproducir una canción
-        function loadSong(index) {
-            if (songs.length === 0) return;
-
-            currentSongIndex = index;
-            audio.src = songs[currentSongIndex];
-
-            // Intentar reproducir la canción
-            audio.play().catch(error => {
-                console.error("Error playing song:", error);
+            // Filtrar por búsqueda
+            filteredPhotos = allPhotos.filter(photo => {
+                const descriptionMatch = photo.description.toLowerCase().includes(searchTerm);
+                const authorMatch = photo.author.toLowerCase().includes(searchTerm);
+                const locationMatch = photo.location.formattedAddress.toLowerCase().includes(searchTerm);
+                return descriptionMatch || authorMatch || locationMatch;
             });
 
-            // Actualizar estado visual
-            playPauseBtn.textContent = '⏸';
-            plate.classList.remove('paused');
-        }
-
-        // Función para reproducir la siguiente canción aleatoria
-        function playRandomSong() {
-            if (songs.length <= 1) return;
-
-            let newIndex;
-            do {
-                newIndex = Math.floor(Math.random() * songs.length);
-            } while (newIndex === currentSongIndex);
-
-            loadSong(newIndex);
-        }
-
-        // Manejar play/pausa
-        function togglePlayPause() {
-            if (audio.paused) {
-                audio.play();
-                playPauseBtn.textContent = '⏸';
-                plate.classList.remove('paused');
-            } else {
-                audio.pause();
-                playPauseBtn.textContent = '▶';
-                plate.classList.add('paused');
+            // Ordenar según el filtro seleccionado
+            switch (filterValue) {
+                case 'date-desc':
+                    filteredPhotos.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    break;
+                case 'date-asc':
+                    filteredPhotos.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    break;
+                case 'author':
+                    filteredPhotos.sort((a, b) => a.author.localeCompare(b.author));
+                    break;
+                case 'location':
+                    filteredPhotos.sort((a, b) => a.location.formattedAddress.localeCompare(b.location.formattedAddress));
+                    break;
             }
+
+            displayFilteredPhotos();
         }
 
-        // Event Listeners
-        prevBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-            loadSong(currentSongIndex);
-        });
+        // Mostrar fotos filtradas
+        function displayFilteredPhotos() {
+            photosGrid.innerHTML = '';
 
-        nextBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex + 1) % songs.length;
-            loadSong(currentSongIndex);
-        });
-
-        playPauseBtn.addEventListener('click', togglePlayPause);
-
-        // Reproducir siguiente canción cuando termine la actual
-        audio.addEventListener('ended', () => {
-            playRandomSong();
-        });
-
-        // Click en el tocadiscos
-        const turntable = document.querySelector('.turntable');
-        turntable.addEventListener('click', togglePlayPause);
-
-        // Manejar errores de reproducción
-        audio.addEventListener('error', (e) => {
-            console.error("Error playing audio:", e);
-            playRandomSong(); // Intentar con otra canción si hay error
-        });
-
-        // Iniciar la carga de canciones cuando se monte el componente
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.innerWidth > 768) {
-                loadSongsFromStorage();
+            if (filteredPhotos.length === 0) {
+                photosGrid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>No se encontraron fotos que coincidan con tu búsqueda</p>
+                        <button onclick="clearSearch()" class="clear-search-btn">Limpiar búsqueda</button>
+                    </div>`;
+                return;
             }
-        });
 
+            filteredPhotos.forEach((photo, index) => {
+                displayPhoto(photo, index);
+            });
+        }
 
-
-
-
-
-
-
-        //--------------------------------------------------------------------------------
+        // Función para limpiar la búsqueda
+        window.clearSearch = function() {
+            searchInput.value = '';
+            applyFiltersAndDisplay();
+        };
 
         // Función para mostrar una foto en la galería
-        function displayPhoto(photoData) {
+        function displayPhoto(photoData, index) {
             const photoCard = document.createElement('div');
             photoCard.className = "card";
+            photoCard.dataset.index = index;
+            
             const formattedDate = formatDate(photoData.date);
+            const locationText = photoData.location.formattedAddress || 'Sin ubicación';
 
-            photoCard.innerHTML =
-                `<img src="${photoData.imageUrl}" alt="Foto del viaje" class="card-image">
+            photoCard.innerHTML = `
+                <div class="card-image-container">
+                    <img src="${photoData.imageUrl}" alt="Foto subida por ${photoData.author}" class="card-image" loading="lazy">
+                    <div class="card-overlay">
+                        <button class="view-photo-btn" aria-label="Ver foto">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="card-content">
-                    <div class="card-author">Subido por: ${photoData.author}</div>
-                    <div class="card-date">${formattedDate}</div>
-                    <div class="card-description">${photoData.description}</div>
+                    <div class="card-header">
+                        <div class="card-author">${photoData.author}</div>
+                        <div class="card-date">${formattedDate}</div>
+                    </div>
+                    <div class="card-description">${truncateText(photoData.description, 100)}</div>
+                    <div class="card-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${truncateText(locationText, 40)}</span>
+                    </div>
+                </div>`;
 
-                    <div class="location-text"> ${photoData.location.formattedAddress}</div>
-                </div>`
-                ;
+            photoCard.querySelector('.view-photo-btn').addEventListener('click', () => {
+                openPhotoModal(index);
+            });
+
+            photoCard.querySelector('.card-image').addEventListener('click', () => {
+                openPhotoModal(index);
+            });
 
             photosGrid.appendChild(photoCard);
         }
 
-        // Función para formatear la fecha al estilo deseado
+        // Truncar texto largo
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
+        // Formatear fecha
         function formatDate(dateString) {
-            const date = new Date(dateString); // Convertir la fecha a un objeto Date
+            const date = new Date(dateString);
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
             return new Intl.DateTimeFormat('es-ES', options).format(date);
         }
 
-        // Cerrar sesión
+        // Abrir modal de foto
+        function openPhotoModal(index) {
+            currentPhotoIndex = index;
+            const photo = filteredPhotos[index];
+            
+            modalImage.src = photo.imageUrl;
+            modalAuthor.textContent = photo.author;
+            modalDate.textContent = formatDate(photo.date);
+            modalDescription.textContent = photo.description;
+            modalLocation.textContent = photo.location.formattedAddress || 'Sin ubicación';
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Evitar scroll
+            
+            updateModalNavButtons();
+        }
+
+        // Actualizar botones de navegación del modal
+        function updateModalNavButtons() {
+            prevBtn.style.display = currentPhotoIndex > 0 ? 'flex' : 'none';
+            nextBtn.style.display = currentPhotoIndex < filteredPhotos.length - 1 ? 'flex' : 'none';
+        }
+
+        // Cambiar a foto anterior
+        function showPreviousPhoto() {
+            if (currentPhotoIndex > 0) {
+                openPhotoModal(currentPhotoIndex - 1);
+            }
+        }
+
+        // Cambiar a siguiente foto
+        function showNextPhoto() {
+            if (currentPhotoIndex < filteredPhotos.length - 1) {
+                openPhotoModal(currentPhotoIndex + 1);
+            }
+        }
+
+        // Cerrar modal
+        function closePhotoModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Restaurar scroll
+        }
+
+        // Cambiar entre vista de cuadrícula y lista
+        function toggleView(viewType) {
+            if (viewType === 'grid') {
+                photosGrid.classList.remove('list-view');
+                photosGrid.classList.add('grid-view');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                localStorage.setItem('viewPreference', 'grid');
+            } else {
+                photosGrid.classList.remove('grid-view');
+                photosGrid.classList.add('list-view');
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+                localStorage.setItem('viewPreference', 'list');
+            }
+        }
+
+        // Toggle menú de opciones
+        function toggleMenu() {
+            menuItems.classList.toggle('active');
+        }
+
+        // Cerrar menú al hacer clic fuera
+        function closeMenuIfClickedOutside(event) {
+            if (menuItems.classList.contains('active') && 
+                !menuItems.contains(event.target) && 
+                !menuToggle.contains(event.target)) {
+                menuItems.classList.remove('active');
+            }
+        }
+
+        // Event Listeners
+        // Búsqueda y filtrado
+        searchInput.addEventListener('input', applyFiltersAndDisplay);
+        filterSelect.addEventListener('change', applyFiltersAndDisplay);
+
+        // Cambio de vista
+        gridViewBtn.addEventListener('click', () => toggleView('grid'));
+        listViewBtn.addEventListener('click', () => toggleView('list'));
+
+        // Menú de opciones
+        menuToggle.addEventListener('click', toggleMenu);
+        document.addEventListener('click', closeMenuIfClickedOutside);
+
+        // Modal de fotos
+        closeModal.addEventListener('click', closePhotoModal);
+        prevBtn.addEventListener('click', showPreviousPhoto);
+        nextBtn.addEventListener('click', showNextPhoto);
+        
+        // Cerrar modal con ESC
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                closePhotoModal();
+            }
+        });
+
+        // Navegación con flechas
+        window.addEventListener('keydown', (e) => {
+            if (modal.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') showPreviousPhoto();
+                if (e.key === 'ArrowRight') showNextPhoto();
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closePhotoModal();
+            }
+        });
+
+        // Logout
         document.getElementById('logoutButton').addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                window.location.href = "../index.html"; // Redirigir al login
+                window.location.href = "../index.html";
             } catch (error) {
                 console.error("Error signing out:", error);
             }
         });
 
-        // Cargar fotos de la sala al cargar la página
-        if (roomId) {
-            loadPhotosByRoom(roomId);
-
-            // Actualizar el enlace dinámicamente con roomId
-            const uploadLink = document.getElementById("uploadLink");
-            uploadLink.href = `upload_photos.html?id_sala=${roomId}`;
-
-            const worldMap = document.getElementById("worldMap");
-            worldMap.href = `worldmap.html?id_sala=${roomId}`;
-
-            const games = document.getElementById("games");
-            games.href = `games.html?id_sala=${roomId}`;
-
-            const notes = document.getElementById("notes");
-            notes.href = `notes.html?id_sala=${roomId}`;
-
-            const dates = document.getElementById("dates");
-            dates.href = `dates.html?id_sala=${roomId}`;
-
-            const distance = document.getElementById("distance");
-            distance.href = `distance.html?id_sala=${roomId}`;
-
-        } else {
-            photosGrid.innerHTML = "<p>Invalid room ID.</p>";
+        // Restablecer vista preferida
+        function restoreViewPreference() {
+            const preference = localStorage.getItem('viewPreference');
+            if (preference === 'list') {
+                toggleView('list');
+            } else {
+                toggleView('grid');
+            }
         }
 
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            if (roomId) {
+                // Actualizar enlaces
+                document.getElementById("uploadLink").href = `upload_photos.html?id_sala=${roomId}`;
+                document.getElementById("worldMap").href = `worldmap.html?id_sala=${roomId}`;
+                document.getElementById("games").href = `games.html?id_sala=${roomId}`;
+                document.getElementById("notes").href = `notes.html?id_sala=${roomId}`;
+                document.getElementById("dates").href = `dates.html?id_sala=${roomId}`;
+                document.getElementById("distance").href = `distance.html?id_sala=${roomId}`;
+                
+                // Cargar fotos
+                loadPhotosByRoom(roomId);
+                
+                // Restaurar preferencia de vista
+                restoreViewPreference();
+            } else {
+                photosGrid.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>ID de sala no válido</p>
+                        <a href="../dashboard.html" class="back-to-dash-btn">Volver al dashboard</a>
+                    </div>`;
+            }
+        });
 
+        // REPRODUCTOR DE MÚSICA
+        // Array para almacenar las URLs de las canciones y nombres
+        let songs = [];
+        let songNames = [];
+        let currentSongIndex = 0;
+        const audio = new Audio();
+        audio.volume = 0.5;
 
+        // Elementos del reproductor
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const prevSongBtn = document.getElementById('prev-btn');
+        const nextSongBtn = document.getElementById('next-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        const currentSongDisplay = document.getElementById('current-song');
+        const progressBar = document.getElementById('song-progress');
+        const plate = document.querySelector('.plate .black');
+
+        // Cargar canciones
+        async function loadSongsFromStorage() {
+            if (window.innerWidth <= 768) return; // No cargar en móviles
+            
+            try {
+                const radioRef = ref(storage, 'radio');
+                const result = await listAll(radioRef);
+                
+                songs = [];
+                songNames = [];
+                
+                for (const item of result.items) {
+                    const url = await getDownloadURL(item);
+                    songs.push(url);
+                    
+                    // Extraer nombre de la canción del nombre del archivo
+                    const name = item.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+                    songNames.push(name);
+                }
+                
+                if (songs.length > 0) {
+                    currentSongIndex = Math.floor(Math.random() * songs.length);
+                    loadSong(currentSongIndex);
+                } else {
+                    currentSongDisplay.textContent = "No hay canciones disponibles";
+                }
+            } catch (error) {
+                console.error("Error loading songs:", error);
+                currentSongDisplay.textContent = "Error al cargar canciones";
+            }
+        }
+
+        // Cargar y reproducir canción
+        function loadSong(index) {
+            if (songs.length === 0) return;
+            
+            currentSongIndex = index;
+            audio.src = songs[currentSongIndex];
+            currentSongDisplay.textContent = songNames[currentSongIndex] || "Canción sin título";
+            
+            audio.play().catch(error => {
+                console.error("Error playing song:", error);
+                currentSongDisplay.textContent = "Error al reproducir";
+            });
+            
+            // Actualizar UI
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            plate.classList.remove('paused');
+        }
+
+        // Reproducir canción aleatoria
+        function playRandomSong() {
+            if (songs.length <= 1) return;
+            
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * songs.length);
+            } while (newIndex === currentSongIndex);
+            
+            loadSong(newIndex);
+        }
+
+        // Toggle reproducción
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                plate.classList.remove('paused');
+            } else {
+                audio.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                plate.classList.add('paused');
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Event Listeners del reproductor
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        prevSongBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong(currentSongIndex);
+        });
+        nextSongBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            loadSong(currentSongIndex);
+        });
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value / 100;
+        });
+        document.querySelector('.turntable').addEventListener('click', togglePlayPause);
+        
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('ended', playRandomSong);
+        audio.addEventListener('error', (e) => {
+            console.error("Audio error:", e);
+            currentSongDisplay.textContent = "Error - Saltando a siguiente canción";
+            playRandomSong();
+        });
+
+        // Iniciar reproductor
+        loadSongsFromStorage();
     </script>
 </body>
 

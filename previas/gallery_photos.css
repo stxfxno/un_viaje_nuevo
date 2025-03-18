@@ -1,0 +1,210 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  .card-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .card:hover .card-image {
+    transform: scale(1.05);
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+  
+  .card-author {
+    color: #3498db;
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .card-date {
+    color: #7f8c8d;
+    font-size: 0.8em;
+    margin-bottom: 12px;
+  }
+  
+  .card-description {
+    color: #34495e;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 15px;
+  }
+  
+  .location-text {
+    color: #2ecc71;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .location-text::before {
+    content: '📍';
+    font-size: 1.2em;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #7f8c8d;
+    font-weight: 300;
+  }
+  
+  .action-button {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+    text-decoration: none;
+    z-index: 1000;
+    font-size: 24px;
+    color: white;
+  }
+  
+  .add-button {
+    bottom: 30px;
+    right: 30px;
+    background-color: #e74c3c;
+  }
+  
+  .world-button {
+    bottom: 100px;
+    right: 30px;
+    background-color: #3498db;
+  }
+  
+  .games-button {
+    bottom: 170px;
+    right: 30px;
+    background-color: #2ecc71;
+  }
+  
+  .action-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .notes-button {
+    bottom: 240px;
+    right: 30px;
+    background-color: #9b59b6;
+  }
+  
+  .dates-button {
+    bottom: 310px;
+    right: 30px;
+    background-color: #f39c12;
+  }
+  
+  .distance-button{
+    bottom: 380px;
+    right: 30px;
+    background-color: #0c4d8d;
+  }
+  
+  .logout-button {
+    bottom: 450px;
+    right: 30px;
+    background-color: #0967c5;
+  }
+  
+  @media (max-width: 768px) {
+    .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+  
+    .add-button {
+        bottom: 20px;
+        right: 20px;
+    }
+  
+    .world-button {
+        bottom: 90px;
+        right: 20px;
+    }
+  
+    .games-button {
+        bottom: 160px;
+        right: 20px;
+    }
+  
+    .notes-button {
+        bottom: 230px;
+        right: 20px;
+    }
+  
+    .dates-button {
+        bottom: 300px;
+        right: 20px;
+    }
+  
+    .logout-button {
+        bottom: 440px;
+        right: 20px;
+    }
+  
+    .distance-button {
+      bottom: 370px;
+      right: 20px;
+  }
+  }
